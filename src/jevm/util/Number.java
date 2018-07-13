@@ -64,6 +64,15 @@ public class Number {
 		}
 	}
 
+	public final static class u8 extends Unsigned {
+		public u8(long value) {
+			super(8,value);
+		}
+		public u8(BigInteger value) {
+			super(8,value);
+		}
+	}
+
 	public final static class u160 extends Unsigned {
 		public u160(long value) {
 			super(160,value);

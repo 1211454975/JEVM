@@ -1,6 +1,43 @@
 package jevm.core;
 
 public class Bytecode {
+	public static final int G_zero = 0;
+	public static final int G_base = 2;
+	public static final int G_verylow = 3;
+	public static final int G_low = 5;
+	public static final int G_mid = 8;
+	public static final int G_high = 10;
+	public static final int G_extcode = 700;
+	public static final int G_balance = 400;
+	public static final int G_sload = 200;
+	public static final int G_jumpdest = 1;
+	public static final int G_sset = 20000;
+	public static final int G_sreset = 5000;
+	public static final int R_sclear = 15000;
+	public static final int R_selfdestruct = 24000;
+	public static final int G_selfdestruct = 5000;
+	public static final int G_create = 32000;
+	public static final int G_codedeposit = 200;
+	public static final int G_call = 700;
+	public static final int G_callvalue = 9000;
+	public static final int G_callstipend = 2300;
+	public static final int G_newaccount = 25000;
+	public static final int G_exp = 10;
+	public static final int G_expbyte = 50;
+	public static final int G_memory = 3;
+	public static final int G_txcreate = 32000;
+	public static final int G_txdatazero = 4;
+	public static final int G_txdatanonzero = 68;
+	public static final int G_transaction = 21000;
+	public static final int G_log = 375;
+	public static final int G_logdata = 8;
+	public static final int G_logtopic = 375;
+	public static final int G_sha3 = 30;
+	public static final int G_sha3word = 6;
+	public static final int G_copy = 3;
+	public static final int G_blockhash = 20;
+	public static final int G_quaddivisor = 100;
+
 	/**
 	 * Identifies the opcode used for each bytecode.
 	 *
@@ -72,38 +109,38 @@ public class Bytecode {
 		GAS          (0x5a, 0, 1, "Get the amount of available gas, including the corresponding reduction for the cost of this instruction."),
 		JUMPDEST     (0x5b, 0, 0, "Mark a valid destination for jumps.  This operation has no eect on machine state during execution."),
 		// 60s & 70s: Push Operations
-		PUSH1        (0x60, 0, 1, "Place 1-byte item on stack."),
-		PUSH2        (0x61, 0, 1, "Place 2-byte item on stack."),
-		PUSH3        (0x62, 0, 1, "Place 3-byte item on stack."),
-		PUSH4        (0x63, 0, 1, "Place 4-byte item on stack."),
-		PUSH5        (0x64, 0, 1, "Place 5-byte item on stack."),
-		PUSH6        (0x65, 0, 1, "Place 6-byte item on stack."),
-		PUSH7        (0x66, 0, 1, "Place 7-byte item on stack."),
-		PUSH8        (0x67, 0, 1, "Place 8-byte item on stack."),
-		PUSH9        (0x68, 0, 1, "Place 9-byte item on stack."),
-		PUSH10       (0x69, 0, 1, "Place 10-byte item on stack."),
-		PUSH11       (0x6a, 0, 1, "Place 11-byte item on stack."),
-		PUSH12       (0x6b, 0, 1, "Place 12-byte item on stack."),
-		PUSH13       (0x6c, 0, 1, "Place 13-byte item on stack."),
-		PUSH14       (0x6d, 0, 1, "Place 14-byte item on stack."),
-		PUSH15       (0x6e, 0, 1, "Place 15-byte item on stack."),
-		PUSH16       (0x6f, 0, 1, "Place 16-byte item on stack."),
-		PUSH17       (0x70, 0, 1, "Place 17-byte item on stack."),
-		PUSH18       (0x71, 0, 1, "Place 18-byte item on stack."),
-		PUSH19       (0x72, 0, 1, "Place 19-byte item on stack."),
-		PUSH20       (0x73, 0, 1, "Place 20-byte item on stack."),
-		PUSH21       (0x74, 0, 1, "Place 21-byte item on stack."),
-		PUSH22       (0x75, 0, 1, "Place 22-byte item on stack."),
-		PUSH23       (0x76, 0, 1, "Place 23-byte item on stack."),
-		PUSH24       (0x77, 0, 1, "Place 24-byte item on stack."),
-		PUSH25       (0x78, 0, 1, "Place 25-byte item on stack."),
-		PUSH26       (0x79, 0, 1, "Place 26-byte item on stack."),
-		PUSH27       (0x7a, 0, 1, "Place 27-byte item on stack."),
-		PUSH28       (0x7b, 0, 1, "Place 28-byte item on stack."),
-		PUSH29       (0x7c, 0, 1, "Place 29-byte item on stack."),
-		PUSH30       (0x7d, 0, 1, "Place 30-byte item on stack."),
-		PUSH31       (0x7e, 0, 1, "Place 31-byte item on stack."),
-		PUSH32       (0x7f, 0, 1, "Place 32-byte item on stack."),
+		PUSH1        (0x60, 0, 1, "Place 1-byte item on stack.",1),
+		PUSH2        (0x61, 0, 1, "Place 2-byte item on stack.",2),
+		PUSH3        (0x62, 0, 1, "Place 3-byte item on stack.",3),
+		PUSH4        (0x63, 0, 1, "Place 4-byte item on stack.",4),
+		PUSH5        (0x64, 0, 1, "Place 5-byte item on stack.",5),
+		PUSH6        (0x65, 0, 1, "Place 6-byte item on stack.",6),
+		PUSH7        (0x66, 0, 1, "Place 7-byte item on stack.",7),
+		PUSH8        (0x67, 0, 1, "Place 8-byte item on stack.",8),
+		PUSH9        (0x68, 0, 1, "Place 9-byte item on stack.",9),
+		PUSH10       (0x69, 0, 1, "Place 10-byte item on stack.",10),
+		PUSH11       (0x6a, 0, 1, "Place 11-byte item on stack.",11),
+		PUSH12       (0x6b, 0, 1, "Place 12-byte item on stack.",12),
+		PUSH13       (0x6c, 0, 1, "Place 13-byte item on stack.",13),
+		PUSH14       (0x6d, 0, 1, "Place 14-byte item on stack.",14),
+		PUSH15       (0x6e, 0, 1, "Place 15-byte item on stack.",15),
+		PUSH16       (0x6f, 0, 1, "Place 16-byte item on stack.",16),
+		PUSH17       (0x70, 0, 1, "Place 17-byte item on stack.",17),
+		PUSH18       (0x71, 0, 1, "Place 18-byte item on stack.",18),
+		PUSH19       (0x72, 0, 1, "Place 19-byte item on stack.",19),
+		PUSH20       (0x73, 0, 1, "Place 20-byte item on stack.",20),
+		PUSH21       (0x74, 0, 1, "Place 21-byte item on stack.",21),
+		PUSH22       (0x75, 0, 1, "Place 22-byte item on stack.",22),
+		PUSH23       (0x76, 0, 1, "Place 23-byte item on stack.",23),
+		PUSH24       (0x77, 0, 1, "Place 24-byte item on stack.",24),
+		PUSH25       (0x78, 0, 1, "Place 25-byte item on stack.",25),
+		PUSH26       (0x79, 0, 1, "Place 26-byte item on stack.",26),
+		PUSH27       (0x7a, 0, 1, "Place 27-byte item on stack.",27),
+		PUSH28       (0x7b, 0, 1, "Place 28-byte item on stack.",28),
+		PUSH29       (0x7c, 0, 1, "Place 29-byte item on stack.",29),
+		PUSH30       (0x7d, 0, 1, "Place 30-byte item on stack.",30),
+		PUSH31       (0x7e, 0, 1, "Place 31-byte item on stack.",31),
+		PUSH32       (0x7f, 0, 1, "Place 32-byte item on stack.",32),
 		// 80s: Duplication Operations
 		DUP1         (0x80, 1, 2, "Duplicate 1st stack item."),
 		DUP2         (0x81, 2, 3, "Duplicate 2nd stack item."),
@@ -172,12 +209,17 @@ public class Bytecode {
 		 * Description of this opcode.
 		 */
 		private final String description;
+		/**
+		 * Width (in bytes) of operands
+		 */
+		private final int[] operands;
 		//
-		private Opcode(int opcode, int args, int returns, String description) {
+		private Opcode(int opcode, int args, int returns, String description, int... operands) {
 			this.opcode = opcode;
 			this.arguments = args;
 			this.returns = returns;
 			this.description = description;
+			this.operands = operands;
 		}
 	}
 
