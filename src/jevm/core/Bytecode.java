@@ -1,6 +1,6 @@
 package jevm.core;
 
-public class Bytecode {
+public abstract class Bytecode {
 	public static final int G_zero = 0;
 	public static final int G_base = 2;
 	public static final int G_verylow = 3;
@@ -220,6 +220,382 @@ public class Bytecode {
 			this.returns = returns;
 			this.description = description;
 			this.operands = operands;
+		}
+	}
+
+	//
+	private final Opcode opcode;
+
+	public Bytecode(Opcode opcode) {
+		this.opcode = opcode;
+	}
+
+	/**
+	 * Return the size of this bytecode in bytes.
+	 *
+	 * @return
+	 */
+	public int size() {
+		return 1;
+	}
+
+	/**
+	 * Get the description associated with this bytecode.
+	 *
+	 * @return
+	 */
+	public String getDescription() {
+		return opcode.description;
+	}
+
+	/**
+	 * Get the amount of gas required to execute this bytecode instruction.
+	 *
+	 * @return
+	 */
+	public abstract int getGasRequired();
+
+	@Override
+	public String toString() {
+		return opcode.toString();
+	}
+
+	/**
+	 * The class of bytecodes which require a fixed amount of gas to execute.
+	 *
+	 * @author David J. Pearce
+	 *
+	 */
+	public static abstract class FixedGasBytecode extends Bytecode {
+		private final int gas;
+
+		public FixedGasBytecode(Opcode opcode, int gas) {
+			super(opcode);
+			this.gas = gas;
+		}
+
+		@Override
+		public int getGasRequired() {
+			return gas;
+		}
+	}
+
+	public static class Stop extends FixedGasBytecode {
+		public Stop() {
+			super(Opcode.STOP, G_zero);
+		}
+	}
+
+	public static class Add extends FixedGasBytecode {
+		public Add() {
+			super(Opcode.ADD, G_verylow);
+		}
+	}
+
+	public static class Sub extends FixedGasBytecode {
+		public Sub() {
+			super(Opcode.SUB, G_verylow);
+		}
+	}
+
+	public static class Mul extends FixedGasBytecode {
+		public Mul() {
+			super(Opcode.MUL, G_low);
+		}
+	}
+
+	public static class Div extends FixedGasBytecode {
+		public Div() {
+			super(Opcode.DIV, G_low);
+		}
+	}
+
+	public static class SignedDiv extends FixedGasBytecode {
+		public SignedDiv() {
+			super(Opcode.SDIV, G_low);
+		}
+	}
+
+	public static class Mod extends FixedGasBytecode {
+		public Mod() {
+			super(Opcode.MOD, G_low);
+		}
+	}
+
+	public static class SignedMod extends FixedGasBytecode {
+		public SignedMod() {
+			super(Opcode.SMOD, G_low);
+		}
+	}
+
+	public static class AddMod extends FixedGasBytecode {
+		public AddMod() {
+			super(Opcode.ADDMOD, G_mid);
+		}
+	}
+
+	public static class MulMod extends FixedGasBytecode {
+		public MulMod() {
+			super(Opcode.MULMOD, G_mid);
+		}
+	}
+
+	public static class Exp extends Bytecode {
+		public Exp() {
+			super(Opcode.EXP);
+		}
+
+		@Override
+		public int getGasRequired() {
+			throw new IllegalArgumentException("implement me");
+		}
+	}
+
+	public static class SignExtend extends FixedGasBytecode {
+		public SignExtend() {
+			super(Opcode.SIGNEXTEND, G_low);
+		}
+	}
+
+	public static class LessThan extends FixedGasBytecode {
+		public LessThan() {
+			super(Opcode.LT, G_verylow);
+		}
+	}
+
+	public static class GreaterThan extends FixedGasBytecode {
+		public GreaterThan() {
+			super(Opcode.GT, G_verylow);
+		}
+	}
+
+	public static class SignedLessThan extends FixedGasBytecode {
+		public SignedLessThan() {
+			super(Opcode.SLT, G_verylow);
+		}
+	}
+
+	public static class SignedGreaterThan extends FixedGasBytecode {
+		public SignedGreaterThan() {
+			super(Opcode.SGT, G_verylow);
+		}
+	}
+
+	public static class Equal extends FixedGasBytecode {
+		public Equal() {
+			super(Opcode.EQ, G_verylow);
+		}
+	}
+
+	public static class IsZero extends FixedGasBytecode {
+		public IsZero() {
+			super(Opcode.ISZERO, G_verylow);
+		}
+	}
+
+	public static class And extends FixedGasBytecode {
+		public And() {
+			super(Opcode.AND, G_verylow);
+		}
+	}
+
+	public static class Or extends FixedGasBytecode {
+		public Or() {
+			super(Opcode.OR, G_verylow);
+		}
+	}
+
+	public static class Xor extends FixedGasBytecode {
+		public Xor() {
+			super(Opcode.XOR, G_verylow);
+		}
+	}
+
+	public static class Not extends FixedGasBytecode {
+		public Not() {
+			super(Opcode.NOT, G_verylow);
+		}
+	}
+
+	/**
+	 * Decode a sequence of one or more bytes into the corresponding bytecode.
+	 *
+	 * @param bytes
+	 * @param offset
+	 * @return
+	 */
+	public static Bytecode decode(byte[] bytes, int offset) {
+		byte opcode = bytes[offset++];
+		switch(opcode) {
+		case 0x00:
+			return new Bytecode.Stop();
+		case 0x01:
+			return new Bytecode.Add();
+		case 0x02:
+			return new Bytecode.Mul();
+		case 0x03:
+			return new Bytecode.Sub();
+		case 0x04:
+			return new Bytecode.Div();
+		case 0x05:
+			return new Bytecode.SignedDiv();
+		case 0x06:
+			return new Bytecode.Mod();
+		case 0x07:
+			return new Bytecode.SignedMod();
+		case 0x08:
+			return new Bytecode.AddMod();
+		case 0x09:
+			return new Bytecode.MulMod();
+		case 0x0a:
+			return new Bytecode.Exp();
+		case 0x0b:
+			return new Bytecode.SignExtend();
+		// 10s: Comparison & Bitwise Logic Operations
+		case 0x10:
+			return new Bytecode.LessThan();
+		case 0x11:
+			return new Bytecode.GreaterThan();
+		case 0x12:
+			return new Bytecode.SignedLessThan();
+		case 0x13:
+			return new Bytecode.SignedGreaterThan();
+		case 0x14:
+			return new Bytecode.Equal();
+		case 0x15:
+			return new Bytecode.IsZero();
+		case 0x16:
+			return new Bytecode.And();
+		case 0x17:
+			return new Bytecode.Or();
+		case 0x18:
+			return new Bytecode.Xor();
+		case 0x19:
+			return new Bytecode.Not();
+//		BYTE         case 0x1a:
+//		// 20s: SHA3
+//		SHA3         case 0x20:
+//		// 30s: Environment Information
+//		ADDRESS      case 0x30:
+//		BALANCE      case 0x31:
+//		ORIGIN       case 0x32:
+//		CALLER       case 0x33:
+//		CALLVALUE    case 0x34:
+//		CALLDATALOAD case 0x35:
+//		CALLDATASIZE case 0x36:
+//		CALLDATACOPY case 0x37:
+//		CODESIZE     case 0x38:
+//		CODECOPY     case 0x39:
+//		GASPRICE     case 0x3a:
+//		EXTCODESIZE  case 0x3b:
+//		EXTCODECOPY  case 0x3c:
+//		RETURNDATASIZE case 0x3d:
+//		RETURNDATACOPY case 0x3e:
+//		// 40s: Block Information
+//		BLOCKHASH    case 0x40:
+//		COINBASE     case 0x41:
+//		TIMESTAMP    case 0x42:
+//		NUMBER       case 0x43:
+//		DIFFICULTY   case 0x44:
+//		GASLIMIT     case 0x45:
+//		// 50s: Stack, Memory Storage and Flow Operations
+//		POP          case 0x50:
+//		MLOAD        case 0x51:
+//		MSTORE       case 0x52:
+//		MSTORE8      case 0x53:
+//		SLOAD        case 0x54:
+//		SSTORE       case 0x55:
+//		JUMP         case 0x56:
+//		JUMPI        case 0x57:
+//		PC           case 0x58:
+//		MSIZE        case 0x59:
+//		GAS          case 0x5a:
+//		JUMPDEST     case 0x5b:
+//		// 60s & 70s: Push Operations
+//		PUSH1        case 0x60:
+//		PUSH2        case 0x61:
+//		PUSH3        case 0x62:
+//		PUSH4        case 0x63:
+//		PUSH5        case 0x64:
+//		PUSH6        case 0x65:
+//		PUSH7        case 0x66:
+//		PUSH8        case 0x67:
+//		PUSH9        case 0x68:
+//		PUSH10       case 0x69:
+//		PUSH11       case 0x6a:
+//		PUSH12       case 0x6b:
+//		PUSH13       case 0x6c:
+//		PUSH14       case 0x6d:
+//		PUSH15       case 0x6e:
+//		PUSH16       case 0x6f:
+//		PUSH17       case 0x70:
+//		PUSH18       case 0x71:
+//		PUSH19       case 0x72:
+//		PUSH20       case 0x73:
+//		PUSH21       case 0x74:
+//		PUSH22       case 0x75:
+//		PUSH23       case 0x76:
+//		PUSH24       case 0x77:
+//		PUSH25       case 0x78:
+//		PUSH26       case 0x79:
+//		PUSH27       case 0x7a:
+//		PUSH28       case 0x7b:
+//		PUSH29       case 0x7c:
+//		PUSH30       case 0x7d:
+//		PUSH31       case 0x7e:
+//		PUSH32       case 0x7f:
+//		// 80s: Duplication Operations
+//		DUP1         case 0x80:
+//		DUP2         case 0x81:
+//		DUP3         case 0x82:
+//		DUP4         case 0x83:
+//		DUP5         case 0x84:
+//		DUP6         case 0x85:
+//		DUP7         case 0x86:
+//		DUP8         case 0x87:
+//		DUP9         case 0x88:
+//		DUP10        case 0x89:
+//		DUP11        case 0x8a:
+//		DUP12        case 0x8b:
+//		DUP13        case 0x8c:
+//		DUP14        case 0x8d:
+//		DUP15        case 0x8e:
+//		DUP16        case 0x8f:
+//		// 90s: Exchange Operations
+//		SWAP1        case 0x90:
+//		SWAP2        case 0x91:
+//		SWAP3        case 0x92:
+//		SWAP4        case 0x93:
+//		SWAP5        case 0x94:
+//		SWAP6        case 0x95:
+//		SWAP7        case 0x96:
+//		SWAP8        case 0x97:
+//		SWAP9        case 0x98:
+//		SWAP10       case 0x99:
+//		SWAP11       case 0x9a:
+//		SWAP12       case 0x9b:
+//		SWAP13       case 0x9c:
+//		SWAP14       case 0x9d:
+//		SWAP15       case 0x9e:
+//		SWAP16       case 0x9f:
+//		// a0s: Logging Operations
+//		LOG0        case 0xa0:
+//		LOG1        case 0xa1:
+//		LOG2        case 0xa2:
+//		LOG3        case 0xa3:
+//		LOG4        case 0xa4:
+//		// f0s: System operations
+//		CREATE      case 0xf0:
+//		CALL        case 0xf1:
+//		CALLCODE    case 0xf2:
+//		RETURN      case 0xf3:
+//		DELEGATECALLcase 0xf4:
+//		STATICCALL  case 0xfa:
+//		REVERT      case 0xfd:
+//		INVALID     case 0xfe:
+//		SELFDESTRUCTcase 0xff:
+		default:
+			throw new IllegalArgumentException("unknown bytecode opcode: " + opcode);
 		}
 	}
 
