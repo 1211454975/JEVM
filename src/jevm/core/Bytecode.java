@@ -417,6 +417,179 @@ public abstract class Bytecode {
 		}
 	}
 
+	public static class Byte extends FixedGasBytecode {
+		public Byte() {
+			super(Opcode.BYTE, G_verylow);
+		}
+	}
+
+	public static class Sha3 extends Bytecode {
+		public Sha3() {
+			super(Opcode.SHA3);
+		}
+		@Override
+		public int getGasRequired() {
+			throw new IllegalArgumentException("implement me!");
+		}
+	}
+
+	public static class Address extends FixedGasBytecode {
+		public Address() {
+			super(Opcode.ADDRESS, G_base);
+		}
+	}
+
+	public static class Balance extends FixedGasBytecode {
+		public Balance() {
+			super(Opcode.BALANCE, G_balance);
+		}
+	}
+
+	public static class Origin extends FixedGasBytecode {
+		public Origin() {
+			super(Opcode.ORIGIN, G_base);
+		}
+	}
+
+	public static class Caller extends FixedGasBytecode {
+		public Caller() {
+			super(Opcode.CALLER, G_base);
+		}
+	}
+
+	public static class CallValue extends FixedGasBytecode {
+		public CallValue() {
+			super(Opcode.CALLVALUE, G_base);
+		}
+	}
+
+	public static class CallDataLoad extends FixedGasBytecode {
+		public CallDataLoad() {
+			super(Opcode.CALLDATALOAD, G_verylow);
+		}
+	}
+
+	public static class CallDataSize extends FixedGasBytecode {
+		public CallDataSize() {
+			super(Opcode.CALLDATASIZE, G_base);
+		}
+	}
+
+	public static class CallDataCopy extends Bytecode {
+		public CallDataCopy() {
+			super(Opcode.CALLDATACOPY);
+		}
+
+		@Override
+		public int getGasRequired() {
+			throw new IllegalArgumentException("implement me");
+		}
+	}
+
+	public static class CodeSize extends FixedGasBytecode {
+		public CodeSize() {
+			super(Opcode.CODESIZE, G_base);
+		}
+	}
+
+	public static class CodeCopy extends Bytecode {
+		public CodeCopy() {
+			super(Opcode.CODECOPY);
+		}
+
+		@Override
+		public int getGasRequired() {
+			throw new IllegalArgumentException("implement me");
+		}
+	}
+
+	public static class GasPrice extends FixedGasBytecode {
+		public GasPrice() {
+			super(Opcode.GASPRICE, G_base);
+		}
+	}
+
+	public static class ExtCodeCopy extends Bytecode {
+		public ExtCodeCopy() {
+			super(Opcode.EXTCODECOPY);
+		}
+
+		@Override
+		public int getGasRequired() {
+			throw new IllegalArgumentException("implement me");
+		}
+	}
+
+	public static class ExtCodeSize extends FixedGasBytecode {
+		public ExtCodeSize() {
+			super(Opcode.EXTCODESIZE, G_extcode);
+		}
+	}
+
+	public static class ReturnDataSize extends FixedGasBytecode {
+		public ReturnDataSize() {
+			super(Opcode.RETURNDATASIZE, G_base);
+		}
+	}
+
+	public static class ReturnDataCopy extends Bytecode {
+		public ReturnDataCopy() {
+			super(Opcode.RETURNDATACOPY);
+		}
+
+		@Override
+		public int getGasRequired() {
+			throw new IllegalArgumentException("implement me");
+		}
+	}
+
+	public static class BlockHash extends Bytecode {
+		public BlockHash() {
+			super(Opcode.BLOCKHASH);
+		}
+
+		@Override
+		public int getGasRequired() {
+			throw new IllegalArgumentException("implement me");
+		}
+	}
+
+	public static class CoinBase extends FixedGasBytecode {
+		public CoinBase() {
+			super(Opcode.COINBASE, G_base);
+		}
+	}
+
+	public static class Timestamp extends FixedGasBytecode {
+		public Timestamp() {
+			super(Opcode.TIMESTAMP, G_base);
+		}
+	}
+
+	public static class Number extends FixedGasBytecode {
+		public Number() {
+			super(Opcode.NUMBER, G_base);
+		}
+	}
+
+	public static class Difficulty extends FixedGasBytecode {
+		public Difficulty() {
+			super(Opcode.DIFFICULTY, G_base);
+		}
+	}
+
+	public static class GasLimit extends FixedGasBytecode {
+		public GasLimit() {
+			super(Opcode.GASLIMIT, G_base);
+		}
+	}
+
+	public static final Bytecode.Stop STOP = new Bytecode.Stop();
+	public static final Bytecode.Add ADD = new Bytecode.Add();
+	public static final Bytecode.Mul MUL = new Bytecode.Mul();
+	public static final Bytecode.Sub SUB = new Bytecode.Sub();
+	public static final Bytecode.Div DIV = new Bytecode.Div();
+
 	/**
 	 * Decode a sequence of one or more bytes into the corresponding bytecode.
 	 *
@@ -428,15 +601,15 @@ public abstract class Bytecode {
 		byte opcode = bytes[offset++];
 		switch(opcode) {
 		case 0x00:
-			return new Bytecode.Stop();
+			return STOP;
 		case 0x01:
-			return new Bytecode.Add();
+			return ADD;
 		case 0x02:
-			return new Bytecode.Mul();
+			return MUL;
 		case 0x03:
-			return new Bytecode.Sub();
+			return SUB;
 		case 0x04:
-			return new Bytecode.Div();
+			return DIV;
 		case 0x05:
 			return new Bytecode.SignedDiv();
 		case 0x06:
@@ -472,25 +645,42 @@ public abstract class Bytecode {
 			return new Bytecode.Xor();
 		case 0x19:
 			return new Bytecode.Not();
-//		BYTE         case 0x1a:
-//		// 20s: SHA3
-//		SHA3         case 0x20:
-//		// 30s: Environment Information
-//		ADDRESS      case 0x30:
-//		BALANCE      case 0x31:
-//		ORIGIN       case 0x32:
-//		CALLER       case 0x33:
-//		CALLVALUE    case 0x34:
-//		CALLDATALOAD case 0x35:
-//		CALLDATASIZE case 0x36:
-//		CALLDATACOPY case 0x37:
-//		CODESIZE     case 0x38:
-//		CODECOPY     case 0x39:
-//		GASPRICE     case 0x3a:
-//		EXTCODESIZE  case 0x3b:
-//		EXTCODECOPY  case 0x3c:
-//		RETURNDATASIZE case 0x3d:
-//		RETURNDATACOPY case 0x3e:
+		case 0x1a:
+			return new Bytecode.Byte();
+		// 20s: SHA3
+		case 0x20:
+			return new Bytecode.Sha3();
+		// 30s: Environment Information
+		case 0x30:
+			return new Bytecode.Address();
+		case 0x31:
+			return new Bytecode.Balance();
+		case 0x32:
+			return new Bytecode.Origin();
+		case 0x33:
+			return new Bytecode.Caller();
+		case 0x34:
+			return new Bytecode.CallValue();
+		case 0x35:
+			return new Bytecode.CallDataLoad();
+		case 0x36:
+			return new Bytecode.CallDataSize();
+		case 0x37:
+			return new Bytecode.CallDataCopy();
+		case 0x38:
+			return new Bytecode.CodeSize();
+		case 0x39:
+			return new Bytecode.CodeCopy();
+		case 0x3a:
+			return new Bytecode.GasPrice();
+		case 0x3b:
+			return new Bytecode.ExtCodeSize();
+		case 0x3c:
+			return new Bytecode.ExtCodeCopy();
+		case 0x3d:
+			return new Bytecode.ReturnDataSize();
+		case 0x3e:
+			return new Bytecode.ReturnDataCopy();
 //		// 40s: Block Information
 //		BLOCKHASH    case 0x40:
 //		COINBASE     case 0x41:
