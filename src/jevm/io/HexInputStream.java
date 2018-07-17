@@ -32,11 +32,13 @@ public class HexInputStream extends InputStream {
 	}
 
 	public static void main(String[] args) throws IOException {
-		byte[] bytes = new byte[10];
-		HexInputStream hin = new HexInputStream(new StringReader("6080604052"));
+		byte[] bytes = new byte[256];
+		HexInputStream hin = new HexInputStream(new StringReader("6080604052600080fd00a165627a7a72305820244b075b3bc74e154aad0d89366cf45d149c586f8a5fceaf7918a54fa41d3f520029"));
 		hin.read(bytes);
 		System.out.println("READ: " + Arrays.toString(bytes));
-		Bytecode bytecode = Bytecode.decode(bytes,0);
-		System.out.println("GOT: " + bytecode);
+		Bytecode[] bytecodes = Bytecode.decode(bytes);
+		for(Bytecode b : bytecodes) {
+			System.out.println("GOT: " + b);
+		}
 	}
 }

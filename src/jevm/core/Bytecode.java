@@ -338,7 +338,7 @@ public abstract class Bytecode {
 		INVALID(0xfe, 0, 0, "Designated invalid instruction."),
 		//
 		SELFDESTRUCT(0xff, 1, 0, "Halt execution and register account for later deletion.");
-
+		//
 		/**
 		 * The opcode for this opcode
 		 */
@@ -371,7 +371,7 @@ public abstract class Bytecode {
 	}
 
 	//
-	private final Opcode opcode;
+	protected final Opcode opcode;
 
 	public Bytecode(Opcode opcode) {
 		this.opcode = opcode;
@@ -384,6 +384,17 @@ public abstract class Bytecode {
 	 */
 	public int size() {
 		return 1;
+	}
+
+	/**
+	 * Indicates whether this bytecode is a terminal bytecode or not. That is, a
+	 * bytecode where execution does not proceed onto the next
+	 *
+	 * @return
+	 */
+	public boolean isTerminal() {
+		// Most are not terminal
+		return false;
 	}
 
 	/**
@@ -430,6 +441,10 @@ public abstract class Bytecode {
 	public static class Stop extends FixedGasBytecode {
 		public Stop() {
 			super(Opcode.STOP, G_zero);
+		}
+
+		public boolean isTermina() {
+			return true;
 		}
 	}
 
@@ -819,6 +834,9 @@ public abstract class Bytecode {
 		public Jump() {
 			super(Opcode.JUMP, G_mid);
 		}
+		public boolean isTermina() {
+			return true;
+		}
 	}
 
 	/**
@@ -891,45 +909,32 @@ public abstract class Bytecode {
 	 *
 	 */
 	public static class Push extends FixedGasBytecode {
-		private final BigInteger value;
+		private final byte[] bytes;
 
 		public Push(byte u8) {
 			super(Opcode.PUSH1, G_verylow);
-			this.value = BigInteger.valueOf(u8);
-		}
-
-		public Push(short u16) {
-			super(Opcode.PUSH2, G_verylow);
-			this.value = BigInteger.valueOf(u16);
+			this.bytes = new byte[] { u8 };
 		}
 
 		public Push(int u32) {
 			super(Opcode.PUSH4, G_verylow);
-			this.value = BigInteger.valueOf(u32);
-		}
-
-		public Push(long u64) {
-			super(Opcode.PUSH8, G_verylow);
-			this.value = BigInteger.valueOf(u64);
-		}
-
-		public Push(BigInteger value) {
-			super(determinePushOpcode(value.toByteArray()), G_verylow);
-			this.value = value;
+			byte b1 = (byte) (u32 & 0xff);
+			byte b2 = (byte) ((u32 >> 8) & 0xff);
+			byte b3 = (byte) ((u32 >> 16) & 0xff);
+			byte b4 = (byte) ((u32 >> 24) & 0xff);
+			this.bytes = new byte[] {b1,b2,b3,b4};
 		}
 
 		public Push(byte[] bytes) {
 			super(determinePushOpcode(bytes), G_verylow);
-			this.value = new BigInteger(bytes);
+			this.bytes = bytes;
 		}
 
-		/**
-		 * Get the value being pushed onto the stack.
-		 *
-		 * @return
-		 */
-		public BigInteger getValue() {
-			return value;
+		@Override
+		public int size() {
+			int operand = 1 + (opcode.opcode - Opcode.PUSH1.opcode);
+			// +1 for opcode itself
+			return operand + 1;
 		}
 
 		/**
@@ -943,6 +948,11 @@ public abstract class Bytecode {
 				throw new IllegalArgumentException("cannot push more than 32 bytes");
 			}
 			return Opcode.values()[Opcode.PUSH1.ordinal() + bytes.length - 1];
+		}
+
+		@Override
+		public String toString() {
+			return opcode.toString() + " " + toHexString(bytes);
 		}
 	}
 
@@ -1056,6 +1066,9 @@ public abstract class Bytecode {
 		public Return() {
 			super(Opcode.RETURN,G_zero);
 		}
+		public boolean isTermina() {
+			return true;
+		}
 	}
 
 	/**
@@ -1101,6 +1114,10 @@ public abstract class Bytecode {
 		public Revert() {
 			super(Opcode.REVERT,G_zero);
 		}
+
+		public boolean isTermina() {
+			return true;
+		}
 	}
 	/**
 	 * Designated invalid instruction.
@@ -1116,6 +1133,10 @@ public abstract class Bytecode {
 		@Override
 		public int getGasRequired() {
 			throw new IllegalArgumentException("INVALID has no gas cost");
+		}
+
+		public boolean isTermina() {
+			return true;
 		}
 	}
 
@@ -1133,6 +1154,10 @@ public abstract class Bytecode {
 		@Override
 		public int getGasRequired() {
 			throw new IllegalArgumentException("implement me!");
+		}
+
+		public boolean isTermina() {
+			return true;
 		}
 	}
 
@@ -1245,6 +1270,30 @@ public abstract class Bytecode {
 	public static Revert REVERT = new Revert();
 	public static Invalid INVALID = new Invalid();
 	public static SelfDestruct SELFDESTRUCT = new SelfDestruct();
+
+	/**
+	 * Decode all bytes in a given byte array.
+	 *
+	 * @param bytes
+	 * @return
+	 */
+	public static Bytecode[] decode(byte[] bytes) {
+		Bytecode[] codes = new Bytecode[bytes.length];
+		int count = 0;
+		int offset = 0;
+		while (offset < bytes.length) {
+			Bytecode b = decode(bytes, offset);
+			System.out.println("GOT: " + b);
+			codes[count++] = b;
+			offset += b.size();
+		}
+		if (count != bytes.length) {
+			// trim the result
+			codes = Arrays.copyOfRange(codes, 0, count);
+		}
+		return codes;
+	}
+
 	/**
 	 * Decode a sequence of one or more bytes into the corresponding bytecode.
 	 *
@@ -1253,7 +1302,7 @@ public abstract class Bytecode {
 	 * @return
 	 */
 	public static Bytecode decode(byte[] bytes, int offset) {
-		int opcode = bytes[offset++];
+		int opcode = (bytes[offset++] & 0xff);
 		switch (opcode) {
 		case 0x00:
 			return STOP;
@@ -1429,7 +1478,7 @@ public abstract class Bytecode {
 		case 0x8d:
 		case 0x8e:
 		case 0x8f: {
-			int nbytes = 1 + opcode - 0x60;
+			int nbytes = opcode - 0x80;
 			return DUP[nbytes];
 		}
 		// 90s: Exchange Operations
@@ -1483,6 +1532,15 @@ public abstract class Bytecode {
 		default:
 			throw new IllegalArgumentException("unknown bytecode opcode: " + opcode);
 		}
+	}
+
+	private static String toHexString(byte[] bytes) {
+		String r = "";
+		for(int i=0;i!=bytes.length;++i) {
+			int b = bytes[i] & 0xff;
+			r = Integer.toHexString(b) + r;
+		}
+		return "0x" + r;
 	}
 
 	public static void main(String[] args) {
