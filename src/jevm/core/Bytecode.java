@@ -2,6 +2,9 @@ package jevm.core;
 
 import java.util.Stack;
 
+import jevm.util.ArrayState;
+import jevm.util.Word.w256;
+
 /**
  * Provides an encoding of the information contained in "Appendix H" of the
  * yellow paper.
@@ -819,13 +822,21 @@ public interface Bytecode {
 		int opcode = state.readCode(pc) & 0xff;
 		switch (opcode) {
 		case STOP:
-			throw new IllegalArgumentException("implement me");
-		case ADD:
-			throw new IllegalArgumentException("implement me");
+			return STATUS_STOP;
+		case ADD: {
+			w256 rhs = state.pop();
+			w256 lhs = state.pop();
+			state.push(lhs.add(rhs));
+			return STATUS_NEXT;
+		}
 		case MUL:
 			throw new IllegalArgumentException("implement me");
-		case SUB:
-			throw new IllegalArgumentException("implement me");
+		case SUB: {
+			w256 rhs = state.pop();
+			w256 lhs = state.pop();
+			state.push(lhs.subtract(rhs));
+			return STATUS_NEXT;
+		}
 		case DIV:
 			throw new IllegalArgumentException("implement me");
 		case SDIV:
@@ -939,69 +950,49 @@ public interface Bytecode {
 			throw new IllegalArgumentException("implement me");
 		// 60s & 70s: Push Operations
 		case PUSH1:
-			throw new IllegalArgumentException("implement me");
 		case PUSH2:
-			throw new IllegalArgumentException("implement me");
 		case PUSH3:
-			throw new IllegalArgumentException("implement me");
 		case PUSH4:
-			throw new IllegalArgumentException("implement me");
 		case PUSH5:
-			throw new IllegalArgumentException("implement me");
 		case PUSH6:
-			throw new IllegalArgumentException("implement me");
 		case PUSH7:
-			throw new IllegalArgumentException("implement me");
 		case PUSH8:
-			throw new IllegalArgumentException("implement me");
 		case PUSH9:
-			throw new IllegalArgumentException("implement me");
 		case PUSH10:
-			throw new IllegalArgumentException("implement me");
 		case PUSH11:
-			throw new IllegalArgumentException("implement me");
 		case PUSH12:
-			throw new IllegalArgumentException("implement me");
 		case PUSH13:
-			throw new IllegalArgumentException("implement me");
 		case PUSH14:
-			throw new IllegalArgumentException("implement me");
 		case PUSH15:
-			throw new IllegalArgumentException("implement me");
 		case PUSH16:
-			throw new IllegalArgumentException("implement me");
 		case PUSH17:
-			throw new IllegalArgumentException("implement me");
 		case PUSH18:
-			throw new IllegalArgumentException("implement me");
 		case PUSH19:
-			throw new IllegalArgumentException("implement me");
 		case PUSH20:
-			throw new IllegalArgumentException("implement me");
 		case PUSH21:
-			throw new IllegalArgumentException("implement me");
 		case PUSH22:
-			throw new IllegalArgumentException("implement me");
 		case PUSH23:
-			throw new IllegalArgumentException("implement me");
 		case PUSH24:
-			throw new IllegalArgumentException("implement me");
 		case PUSH25:
-			throw new IllegalArgumentException("implement me");
 		case PUSH26:
-			throw new IllegalArgumentException("implement me");
 		case PUSH27:
-			throw new IllegalArgumentException("implement me");
 		case PUSH28:
-			throw new IllegalArgumentException("implement me");
 		case PUSH29:
-			throw new IllegalArgumentException("implement me");
 		case PUSH30:
-			throw new IllegalArgumentException("implement me");
 		case PUSH31:
-			throw new IllegalArgumentException("implement me");
-		case PUSH32:
-			throw new IllegalArgumentException("implement me");
+		case PUSH32: {
+			int count = opcode - PUSH1 + 1;
+			// extract operand
+			byte[] bytes = new byte[count];
+			pc = pc + 1;
+			for(int i=0;i!=count;++i) {
+				bytes[i] = state.readCode(pc+i);
+			}
+			// push onto stack
+			System.out.println("GOT: " + new w256(bytes));
+			state.push(new w256(bytes));
+			return STATUS_NEXT;
+		}
 		// 80s: Duplication Operations
 		case DUP1:
 			throw new IllegalArgumentException("implement me");
@@ -1113,6 +1104,22 @@ public interface Bytecode {
 	}
 
 	/**
+	 * Indicates the Virtual Machine should stop.
+	 */
+	public static final Status STATUS_STOP = new Status() {
+
+	};
+
+	/**
+	 * Indicates the Virtual Machine should continue to the next logical
+	 * instruction.
+	 */
+	public static final Status STATUS_NEXT = new Status() {
+
+	};
+
+
+	/**
 	 * Indicates the next instruction in the contract that should be executed after
 	 * this.
 	 *
@@ -1139,5 +1146,13 @@ public interface Bytecode {
 		RETURN(byte[] returned) {
 			this.returned = returned;
 		}
+	}
+
+	public static void main(String[] args) {
+		ArrayState state = new ArrayState(new byte[] {PUSH1, 0x3, PUSH1, 0x2, ADD});
+		Bytecode.execute(0, state);
+		Bytecode.execute(2, state);
+		Bytecode.execute(4, state);
+		System.out.println("GOT: " + state);
 	}
 }

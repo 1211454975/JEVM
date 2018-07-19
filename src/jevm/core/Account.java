@@ -1,6 +1,6 @@
 package jevm.core;
 
-import static jevm.util.Number.*;
+import static jevm.util.Word.*;
 
 public class Account {
 	/**
@@ -8,12 +8,12 @@ public class Account {
 	 * or, in the case of accounts with associated code, the number of
 	 * contract-creations made by this account.
 	 */
-	private u256 nonce;
+	private w256 nonce;
 
 	/**
 	 * A scalar value equal to the number of Wei owned by this address
 	 */
-	private u256 balance;
+	private w256 balance;
 
 	/**
 	 * A 256-bit hash of the root node of a Merkle Patricia tree that encodes the
@@ -21,7 +21,7 @@ public class Account {
 	 * encoded into the trie as a mapping from the Keccak 256-bit hash of the
 	 * 256-bit integer keys to the RLP-encoded 256-bit integer values
 	 */
-	private u256 storage;
+	private w256 storage;
 
 	/**
 	 * The hash of the EVM code of this account—this is the code that gets executed
@@ -30,16 +30,16 @@ public class Account {
 	 * fragments are contained in the state database un- der their corresponding
 	 * hashes for later retrieval
 	 */
-	private final u256 codeHash;
+	private final w256 codeHash;
 
 	/**
 	 * Construct a new account, with a corresponding code hash.
 	 *
 	 * @param codeHash
 	 */
-	public Account(u256 codeHash) {
-		this.nonce = new u256(0);
-		this.balance = new u256(0);
+	public Account(w256 codeHash) {
+		this.nonce = new w256(0);
+		this.balance = new w256(0);
 		this.codeHash = codeHash;
 	}
 }

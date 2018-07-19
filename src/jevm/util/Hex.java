@@ -2,6 +2,7 @@ package jevm.util;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import jevm.core.Bytecode;
@@ -75,17 +76,19 @@ public class Hex {
 	}
 
 	public static void main(String[] args) throws IOException {
-		byte[] bytes = fromBigEndianString("60806040526000805460ff1916607b179055348015601c57600080fd5b50603580602a6000396000f3006080604052600080fd00a165627a7a72305820e0643a302559e78256b8973d9ead587f53365c97427b0b57956bfa80a9ef0dc40029");
-		System.out.println("READ: " + Arrays.toString(bytes));
-		for(int i=0;i<bytes.length;) {
-			Bytecode.Opcode opcode = Bytecode.decode(bytes[i]);
-			System.out.print("GOT: " + opcode);
-			if(opcode.width > 1) {
-				byte[] operand = Arrays.copyOfRange(bytes, i + 1, i + opcode.width);
-				System.out.print(" 0x" + toBigEndianString(operand));
-			}
-			System.out.println();
-			i = i + opcode.width;
-		}
+//		byte[] bytes = fromBigEndianString("60806040526000805460ff1916607b179055348015601c57600080fd5b50603580602a6000396000f3006080604052600080fd00a165627a7a72305820e0643a302559e78256b8973d9ead587f53365c97427b0b57956bfa80a9ef0dc40029");
+//		System.out.println("READ: " + Arrays.toString(bytes));
+//		for(int i=0;i<bytes.length;) {
+//			Bytecode.Opcode opcode = Bytecode.decode(bytes[i]);
+//			System.out.print("GOT: " + opcode);
+//			if(opcode.width > 1) {
+//				byte[] operand = Arrays.copyOfRange(bytes, i + 1, i + opcode.width);
+//				System.out.print(" 0x" + toBigEndianString(operand));
+//			}
+//			System.out.println();
+//			i = i + opcode.width;
+//		}
+		BigInteger value = BigInteger.valueOf(5);
+		System.out.println("HEX IS: " + toBigEndianString(value.toByteArray()));
 	}
 }

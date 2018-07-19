@@ -1,7 +1,6 @@
 package jevm.core;
 
-import jevm.util.Number.i256;
-import jevm.util.Number.u256;
+import jevm.util.Word.w256;
 
 /**
  * Provides various bits of machinery for executing EVM contracts.
@@ -23,21 +22,21 @@ public class VirtualMachine {
 		 *
 		 * @return
 		 */
-		public i256 pop();
+		public w256 pop();
 
 		/**
 		 * Push word onto stack.
 		 *
 		 * @param value
 		 */
-		public void push(i256 value);
+		public void push(w256 value);
 
 		/**
 		 * Get the size of the executing code contract (in bytes).
 		 *
 		 * @return
 		 */
-		public u256 codeSize();
+		public w256 codeSize();
 
 		/**
 		 * Get code byte from executing contract.
@@ -52,7 +51,7 @@ public class VirtualMachine {
 		 *
 		 * @return
 		 */
-		public u256 memorySize();
+		public w256 memorySize();
 
 		/**
 		 * Read word from give address in memory.
@@ -61,7 +60,7 @@ public class VirtualMachine {
 		 *            identifies word to read.
 		 * @return
 		 */
-		public i256 readMemory(i256 address);
+		public w256 readMemory(w256 address);
 
 		/**
 		 * Write word word to given address in memory.
@@ -70,7 +69,7 @@ public class VirtualMachine {
 		 * @param value
 		 * @return
 		 */
-		public boolean writeMemory(i256 address, i256 value);
+		public boolean writeMemory(w256 address, w256 value);
 
 		/**
 		 * Read word from given address in storage.
@@ -79,7 +78,7 @@ public class VirtualMachine {
 		 *            identifies word to read.
 		 * @return
 		 */
-		public i256 readStorage(i256 address);
+		public w256 readStorage(w256 address);
 
 		/**
 		 * Write word word to given address in storage.
@@ -88,6 +87,6 @@ public class VirtualMachine {
 		 * @param value
 		 * @return
 		 */
-		public boolean writeStorage(i256 address, i256 value);
+		public boolean writeStorage(w256 address, w256 value);
 	}
 }
