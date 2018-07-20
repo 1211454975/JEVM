@@ -2,6 +2,7 @@ package jevm.util;
 
 import java.util.Arrays;
 
+import jevm.core.Bytecode;
 import jevm.core.VirtualMachine;
 import jevm.util.Word.w256;
 
@@ -165,6 +166,35 @@ public class ArrayState implements VirtualMachine.State {
 
 	@Override
 	public String toString() {
-		return sp + Arrays.toString(stack);
+		String r = status + ";[";
+		for(int i=0;i!=sp;++i) {
+			if(i != 0) {
+				r += ",";
+			}
+			r += stack[i];
+		}
+		r += "];[";
+		for(int i=0;i!=mp;++i) {
+			if(i != 0) {
+				r += ",";
+			}
+			r += memory[i];
+		}
+		r += "];[";
+		for(int i=0;i!=code.length;) {
+			if(i != 0) {
+				r += ",";
+			}
+			if(pc == i) {
+				r += "*";
+			}
+			Bytecode.Opcode op = Bytecode.decode(code[i]);
+			r += op;
+			if(op.width > 1) {
+				r += " 0x"+Hex.toBigEndianString(Arrays.copyOfRange(code, i+1, i+op.width));
+			}
+			i = i + op.width;
+		}
+		return r + "]";
 	}
 }

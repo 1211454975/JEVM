@@ -1343,7 +1343,7 @@ public class Bytecode {
 	}
 
 	public static void printState(VirtualMachine.State state) {
-		System.out.println("PC=" + state.pc() + ", SP=" + state.sp() + ", MP=" + state.mp());
+		System.out.println(state.status() + ", PC=" + state.pc() + ", SP=" + state.sp() + ", MP=" + state.mp());
 		System.out.println("ADDRESS            STACK              MEMORY");
 		for(int i=0;i!=Math.max(state.sp(),state.mp());++i) {
 			System.out.print(new w256(i));
@@ -1367,9 +1367,11 @@ public class Bytecode {
 
 	public static void main(String[] args) {
 		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16 });
-		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.codeSize()) {
-			Bytecode.execute(state);
-		}
-		printState(state);
+		//while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.codeSize()) {
+		Bytecode.execute(state);
+		Bytecode.execute(state);
+		//}
+		System.out.println("STATE: " + state);
+		//printState(state);
 	}
 }
