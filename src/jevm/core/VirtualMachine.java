@@ -17,6 +17,43 @@ public class VirtualMachine {
 	 *
 	 */
 	public interface State {
+
+		/**
+		 * Identifies the execution status of a given contract.
+		 */
+		public enum Status {
+			OK,
+			STOP,
+			REVERT,
+			EXCEPTION
+		}
+
+		/**
+		 * Get execution status of this contract.
+		 *
+		 * @return
+		 */
+		public Status status();
+
+		/**
+		 * Set the status of this machine
+		 */
+		public void halt(Status status);
+
+		/**
+		 * Update the program counter for this state.
+		 *
+		 * @param pc
+		 */
+		public void jump(int pc);
+
+		/**
+		 * Get the value of the program counter.
+		 *
+		 * @return
+		 */
+		public int pc();
+
 		/**
 		 * Pop word of the stack.
 		 *
@@ -89,4 +126,5 @@ public class VirtualMachine {
 		 */
 		public boolean writeStorage(w256 address, w256 value);
 	}
+
 }

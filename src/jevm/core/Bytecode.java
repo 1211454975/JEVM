@@ -12,7 +12,7 @@ import jevm.util.Word.w256;
  * @author David J. Pearce
  *
  */
-public interface Bytecode {
+public class Bytecode {
 
 	public static final int G_zero = 0;
 	public static final int G_base = 2;
@@ -521,7 +521,7 @@ public interface Bytecode {
 	 * useful information about the bytecode, such as its mnemonic, a description
 	 * information about how it affects the stack.
 	 *
-	 * @param bytes
+	 * @param ints
 	 * @param offset
 	 * @return
 	 */
@@ -818,64 +818,57 @@ public interface Bytecode {
 	 *
 	 * @param state
 	 */
-	public static Status execute(int pc, VirtualMachine.State state) {
+	public static boolean execute(VirtualMachine.State state) {
+		int pc = state.pc();
 		int opcode = state.readCode(pc) & 0xff;
 		switch (opcode) {
 		case STOP:
-			return STATUS_STOP;
-		case ADD: {
-			w256 rhs = state.pop();
-			w256 lhs = state.pop();
-			state.push(lhs.add(rhs));
-			return STATUS_NEXT;
-		}
+			return executeSTOP(pc, state);
+		case ADD:
+			return executeADD(pc, state);
 		case MUL:
-			throw new IllegalArgumentException("implement me");
-		case SUB: {
-			w256 rhs = state.pop();
-			w256 lhs = state.pop();
-			state.push(lhs.subtract(rhs));
-			return STATUS_NEXT;
-		}
+			return executeMUL(pc, state);
+		case SUB:
+			return executeSUB(pc, state);
 		case DIV:
-			throw new IllegalArgumentException("implement me");
+			return executeDIV(pc, state);
 		case SDIV:
-			throw new IllegalArgumentException("implement me");
+			return executeSDIV(pc, state);
 		case MOD:
-			throw new IllegalArgumentException("implement me");
+			return executeMOD(pc, state);
 		case SMOD:
-			throw new IllegalArgumentException("implement me");
+			return executeSMOD(pc, state);
 		case ADDMOD:
-			throw new IllegalArgumentException("implement me");
+			return executeADDMOD(pc, state);
 		case MULMOD:
-			throw new IllegalArgumentException("implement me");
+			return executeMULMOD(pc, state);
 		case EXP:
-			throw new IllegalArgumentException("implement me");
+			return executeEXP(pc, state);
 		case SIGNEXTEND:
-			throw new IllegalArgumentException("implement me");
+			return executeSIGNEXTEND(pc, state);
 		// 10s: Comparison & Bitwise Logic Operations
 		case LT:
-			throw new IllegalArgumentException("implement me");
+			return executeLT(pc, state);
 		case GT:
-			throw new IllegalArgumentException("implement me");
+			return executeGT(pc, state);
 		case SLT:
-			throw new IllegalArgumentException("implement me");
+			return executeSLT(pc, state);
 		case SGT:
-			throw new IllegalArgumentException("implement me");
+			return executeSGT(pc, state);
 		case EQ:
-			throw new IllegalArgumentException("implement me");
+			return executeEQ(pc, state);
 		case ISZERO:
-			throw new IllegalArgumentException("implement me");
+			return executeISZERO(pc, state);
 		case AND:
-			throw new IllegalArgumentException("implement me");
+			return executeAND(pc, state);
 		case OR:
-			throw new IllegalArgumentException("implement me");
+			return executeOR(pc, state);
 		case XOR:
-			throw new IllegalArgumentException("implement me");
+			return executeXOR(pc, state);
 		case NOT:
-			throw new IllegalArgumentException("implement me");
+			return executeNOT(pc, state);
 		case BYTE:
-			throw new IllegalArgumentException("implement me");
+			return executeBYTE(pc, state);
 		// 20s: SHA3
 		case SHA3:
 			throw new IllegalArgumentException("implement me");
@@ -982,18 +975,9 @@ public interface Bytecode {
 		case PUSH31:
 		case PUSH32: {
 			int count = opcode - PUSH1 + 1;
-			// extract operand
-			byte[] bytes = new byte[count];
-			pc = pc + 1;
-			for(int i=0;i!=count;++i) {
-				bytes[i] = state.readCode(pc+i);
-			}
-			// push onto stack
-			System.out.println("GOT: " + new w256(bytes));
-			state.push(new w256(bytes));
-			return STATUS_NEXT;
+			return executePUSH(count, pc, state);
 		}
-		// 80s: Duplication Operations
+				// 80s: Duplication Operations
 		case DUP1:
 			throw new IllegalArgumentException("implement me");
 		case DUP2:
@@ -1094,65 +1078,196 @@ public interface Bytecode {
 		}
 	}
 
-	/**
-	 * Indicates the result of executing a given bytecode.
-	 * @author David J. Pearce
-	 *
-	 */
-	public static abstract class Status {
-
+	private static boolean executeSTOP(int pc, VirtualMachine.State state) {
+		state.halt(VirtualMachine.State.Status.STOP);
+		return false;
 	}
 
-	/**
-	 * Indicates the Virtual Machine should stop.
-	 */
-	public static final Status STATUS_STOP = new Status() {
-
-	};
-
-	/**
-	 * Indicates the Virtual Machine should continue to the next logical
-	 * instruction.
-	 */
-	public static final Status STATUS_NEXT = new Status() {
-
-	};
-
-
-	/**
-	 * Indicates the next instruction in the contract that should be executed after
-	 * this.
-	 *
-	 * @author David J. Pearce
-	 *
-	 */
-	public static class NEXT {
-		public final int pc;
-
-		NEXT(int pc) {
-			this.pc = pc;
-		}
+	private static boolean executeADD(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		state.push(lhs.add(rhs));
+		state.jump(pc + 1);
+		return true;
 	}
 
-	/**
-	 * Indicates the contract has terminated with the given returns.
-	 *
-	 * @author David J. Pearce
-	 *
-	 */
-	public static class RETURN {
-		public final byte[] returned;
+	private static boolean executeSUB(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		state.push(lhs.subtract(rhs));
+		state.jump(pc + 1);
+		return true;
+	}
 
-		RETURN(byte[] returned) {
-			this.returned = returned;
+	private static boolean executeMUL(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeDIV(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeSDIV(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeMOD(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeSMOD(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeADDMOD(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeMULMOD(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeEXP(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		throw new UnsupportedOperationException();
+	}
+
+	private static boolean executeSIGNEXTEND(int pc, VirtualMachine.State state) {
+		w256 w1 = state.pop();
+		w256 w0 = state.pop();
+		int offset = w0.toInt();
+		// NOTE: negative offset has no effect
+		w1 = (offset < 31) ? w1.signExtend(offset + 1) : w1;
+		state.push(w1);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeLT(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		boolean b = lhs.unsignedLessThan(rhs);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeSLT(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		boolean b = lhs.signedLessThan(rhs);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeGT(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		boolean b = rhs.unsignedLessThan(lhs);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeSGT(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		boolean b = rhs.signedLessThan(lhs);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeEQ(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		boolean b = lhs.equals(rhs);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeISZERO(int pc, VirtualMachine.State state) {
+		w256 lhs = state.pop();
+		boolean b = lhs.equals(w256.ZERO);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeAND(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		state.push(lhs.and(rhs));
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeOR(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		state.push(lhs.or(rhs));
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeXOR(int pc, VirtualMachine.State state) {
+		w256 rhs = state.pop();
+		w256 lhs = state.pop();
+		state.push(lhs.xor(rhs));
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeNOT(int pc, VirtualMachine.State state) {
+		w256 lhs = state.pop();
+		boolean b = lhs.equals(w256.ZERO);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+
+	private static boolean executeBYTE(int pc, VirtualMachine.State state) {
+		w256 lhs = state.pop();
+		boolean b = lhs.equals(w256.ZERO);
+		state.push(b ? w256.ONE : w256.ZERO);
+		state.jump(pc + 1);
+		return true;
+	}
+	private static boolean executePUSH(int count, int pc, VirtualMachine.State state) {
+		// extract operand
+		byte[] bytes = new byte[count];
+		pc = pc + 1;
+		for (int i = 0; i != count; ++i) {
+			bytes[i] = state.readCode(pc + i);
 		}
+		// push onto stack
+		state.push(new w256(bytes));
+		state.jump(pc + count);
+		return true;
 	}
 
 	public static void main(String[] args) {
 		ArrayState state = new ArrayState(new byte[] {PUSH1, 0x3, PUSH1, 0x2, ADD});
-		Bytecode.execute(0, state);
-		Bytecode.execute(2, state);
-		Bytecode.execute(4, state);
+		Bytecode.execute(state);
+		Bytecode.execute(state);
+		Bytecode.execute(state);
 		System.out.println("GOT: " + state);
 	}
 }

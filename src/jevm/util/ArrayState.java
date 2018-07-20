@@ -11,6 +11,10 @@ public class ArrayState implements VirtualMachine.State {
 	 */
 	private final byte[] code;
 	/**
+	 * Program Counter identifies next instruction to execute.
+	 */
+	private int pc;
+	/**
 	 * Stack Pointer identifies next free slot on the stack.
 	 */
 	private int sp;
@@ -18,11 +22,35 @@ public class ArrayState implements VirtualMachine.State {
 	 * Stack of 256bit words.
 	 */
 	private w256[] stack;
+	/**
+	 * Status identifies current execution status of this state.
+	 */
+	private VirtualMachine.State.Status status;
 
 	public ArrayState(byte[] code) {
 		this.code = code;
 		this.sp = 0;
 		this.stack = new w256[32];
+	}
+
+	@Override
+	public Status status() {
+		return status;
+	}
+
+	@Override
+	public void halt(Status status) {
+		this.status = status;
+	}
+
+	@Override
+	public void jump(int pc) {
+		this.pc = pc;
+	}
+
+	@Override
+	public int pc() {
+		return pc;
 	}
 
 	@Override
