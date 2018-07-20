@@ -55,6 +55,20 @@ public class VirtualMachine {
 		public int pc();
 
 		/**
+		 * Get the value of the stack pointer.
+		 *
+		 * @return
+		 */
+		public int sp();
+
+		/**
+		 * Get the value of the memory pointer.
+		 *
+		 * @return
+		 */
+		public int mp();
+
+		/**
 		 * Pop word of the stack.
 		 *
 		 * @return
@@ -69,11 +83,20 @@ public class VirtualMachine {
 		public void push(w256 value);
 
 		/**
+		 * Peek a word from the given address on the stack
+		 *
+		 * @param address
+		 * @return
+		 */
+		public w256 peek(int address);
+
+
+		/**
 		 * Get the size of the executing code contract (in bytes).
 		 *
 		 * @return
 		 */
-		public w256 codeSize();
+		public int codeSize();
 
 		/**
 		 * Get code byte from executing contract.
@@ -91,6 +114,16 @@ public class VirtualMachine {
 		public w256 memorySize();
 
 		/**
+		 * Ensure sufficient memory to access the given address. If the address does not
+		 * already exist then it is initialised with zero.
+		 *
+		 * @param address
+		 * @return Flag indicating whether was able to expand memory or not (e.g.
+		 *         because hard limit encountered).
+		 */
+		public boolean expandMemory(w256 address);
+
+		/**
 		 * Read word from give address in memory.
 		 *
 		 * @param address
@@ -98,6 +131,15 @@ public class VirtualMachine {
 		 * @return
 		 */
 		public w256 readMemory(w256 address);
+
+		/**
+		 * Peek a word from the given address in memory.
+		 *
+		 * @param address
+		 * @return
+		 */
+		public w256 peekMemory(int address);
+
 
 		/**
 		 * Write word word to given address in memory.

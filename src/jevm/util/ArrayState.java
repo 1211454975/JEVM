@@ -23,14 +23,25 @@ public class ArrayState implements VirtualMachine.State {
 	 */
 	private w256[] stack;
 	/**
+	 * Memory Pointer identifies first unused slot in memory
+	 */
+	private int mp;
+	/**
+	 * Memory consisting of 256bit words.
+	 */
+	private w256[] memory;
+	/**
 	 * Status identifies current execution status of this state.
 	 */
 	private VirtualMachine.State.Status status;
 
 	public ArrayState(byte[] code) {
+		this.status = VirtualMachine.State.Status.OK;
 		this.code = code;
 		this.sp = 0;
 		this.stack = new w256[32];
+		this.mp = 0;
+		this.memory = new w256[32];
 	}
 
 	@Override
@@ -54,6 +65,17 @@ public class ArrayState implements VirtualMachine.State {
 	}
 
 	@Override
+	public int sp() {
+		return sp;
+	}
+
+	@Override
+	public int mp() {
+		return mp;
+	}
+
+
+	@Override
 	public w256 pop() {
 		return stack[--sp];
 	}
@@ -67,8 +89,13 @@ public class ArrayState implements VirtualMachine.State {
 	}
 
 	@Override
-	public w256 codeSize() {
-		return new w256(code.length);
+	public w256 peek(int i) {
+		return stack[i];
+	}
+
+	@Override
+	public int codeSize() {
+		return code.length;
 	}
 
 	@Override
@@ -78,20 +105,50 @@ public class ArrayState implements VirtualMachine.State {
 
 	@Override
 	public w256 memorySize() {
-		// TODO Auto-generated method stub
-		return null;
+		return new w256(mp);
 	}
 
 	@Override
 	public w256 readMemory(w256 address) {
-		// TODO Auto-generated method stub
-		return null;
+		if(address.isInt()) {
+			int addr = address.toInt();
+			// NOTE: negative address caught here
+			return memory[addr];
+		} else {
+			throw new IllegalArgumentException("invalid memory address");
+		}
+	}
+
+	@Override
+	public boolean expandMemory(w256 address) {
+		int addr = address.toInt();
+		if(address.isInt()) {
+			if(mp <= addr) {
+				mp = addr + 1;
+				if(addr >= memory.length) {
+					memory = Arrays.copyOf(memory, Math.max(mp,memory.length * 2));
+				}
+			}
+			return true;
+		} else {
+			throw new IllegalArgumentException("invalid memory address");
+		}
 	}
 
 	@Override
 	public boolean writeMemory(w256 address, w256 value) {
-		// TODO Auto-generated method stub
-		return false;
+		int addr = address.toInt();
+		if(address.isInt()) {
+			memory[addr] = value;
+			return true;
+		} else {
+			throw new IllegalArgumentException("invalid memory address");
+		}
+	}
+
+	@Override
+	public w256 peekMemory(int i) {
+		return memory[i];
 	}
 
 	@Override

@@ -1,7 +1,9 @@
 package jevm.core;
 
+import java.util.Arrays;
 import java.util.Stack;
 
+import jevm.core.VirtualMachine.State.Status;
 import jevm.util.ArrayState;
 import jevm.util.Word.w256;
 
@@ -918,11 +920,11 @@ public class Bytecode {
 			throw new IllegalArgumentException("implement me");
 		// 50s: Stack, Memory Storage and Flow Operations
 		case POP:
-			throw new IllegalArgumentException("implement me");
+			return executePOP(pc,state);
 		case MLOAD:
-			throw new IllegalArgumentException("implement me");
+			return executeMLOAD(pc,state);
 		case MSTORE:
-			throw new IllegalArgumentException("implement me");
+			return executeMSTORE(pc,state);
 		case MSTORE8:
 			throw new IllegalArgumentException("implement me");
 		case SLOAD:
@@ -930,9 +932,9 @@ public class Bytecode {
 		case SSTORE:
 			throw new IllegalArgumentException("implement me");
 		case JUMP:
-			throw new IllegalArgumentException("implement me");
+			return executeJUMP(pc, state);
 		case JUMPI:
-			throw new IllegalArgumentException("implement me");
+			return executeJUMPI(pc, state);
 		case PC:
 			throw new IllegalArgumentException("implement me");
 		case MSIZE:
@@ -940,7 +942,7 @@ public class Bytecode {
 		case GAS:
 			throw new IllegalArgumentException("implement me");
 		case JUMPDEST:
-			throw new IllegalArgumentException("implement me");
+			return executeJUMPDEST(pc, state);
 		// 60s & 70s: Push Operations
 		case PUSH1:
 		case PUSH2:
@@ -1244,12 +1246,89 @@ public class Bytecode {
 	}
 
 	private static boolean executeBYTE(int pc, VirtualMachine.State state) {
-		w256 lhs = state.pop();
-		boolean b = lhs.equals(w256.ZERO);
-		state.push(b ? w256.ONE : w256.ZERO);
-		state.jump(pc + 1);
+		w256 w0 = state.pop();
+		w256 w1 = state.pop();
+		int offset = w0.toInt();
+		if(!w0.isInt() || offset < 0 || offset >= 32) {
+			state.push(w256.ZERO);
+		} else {
+			byte[] bytes = w1.toByteArray();
+			state.push(new w256(bytes[offset]));
+		}
+		state.jump(pc+1);
 		return true;
 	}
+
+	private static boolean executePOP(int pc, VirtualMachine.State state) {
+		state.pop();
+		return true;
+	}
+
+	private static boolean executeMLOAD(int pc, VirtualMachine.State state) {
+		w256 address = state.pop();
+		// Ensure enough memory
+		if(!state.expandMemory(address)) {
+			state.halt(VirtualMachine.State.Status.EXCEPTION);
+			return false;
+		} else {
+			state.push(state.readMemory(address));
+			state.jump(pc+1);
+			return true;
+		}
+	}
+
+	private static boolean executeMSTORE(int pc, VirtualMachine.State state) {
+		w256 address = state.pop();
+		w256 w = state.pop();
+		// Ensure enough memory
+		if (!state.expandMemory(address)) {
+			state.halt(VirtualMachine.State.Status.EXCEPTION);
+			return false;
+		} else {
+			// Update the target location
+			state.writeMemory(address, w);
+			state.jump(pc+1);
+			return true;
+		}
+	}
+
+	private static boolean executeJUMPI(int pc, VirtualMachine.State state) {
+		int target = pc + 1;
+		w256 address = state.pop();
+		w256 w = state.pop();
+		// FIXME: do we fail early if address invalid?
+		if (w.equals(w256.ZERO)) {
+			// Jump to the target address
+			target = address.toInt();
+			// Sanity check jump target
+			if (!address.isInt() || target < 0 || target >= state.codeSize() || state.readCode(target) != JUMPDEST) {
+				state.halt(Status.EXCEPTION);
+				return false;
+			}
+		}
+		// Branch either to next instruction, or jumpdest
+		state.jump(target);
+		return true;
+	}
+
+	private static boolean executeJUMP(int pc, VirtualMachine.State state) {
+		w256 address = state.pop();
+		int target = address.toInt();
+		// Sanity check jump target
+		if (!address.isInt() || target < 0 || target >= state.codeSize() || state.readCode(target) != JUMPDEST) {
+			state.halt(Status.EXCEPTION);
+			return false;
+		} else {
+			// Jump target looks fine, so proceed
+			state.jump(target);
+			return true;
+		}
+	}
+	private static boolean executeJUMPDEST(int pc, VirtualMachine.State state) {
+		state.jump(pc+1);
+		return true;
+	}
+
 	private static boolean executePUSH(int count, int pc, VirtualMachine.State state) {
 		// extract operand
 		byte[] bytes = new byte[count];
@@ -1263,11 +1342,34 @@ public class Bytecode {
 		return true;
 	}
 
+	public static void printState(VirtualMachine.State state) {
+		System.out.println("PC=" + state.pc() + ", SP=" + state.sp() + ", MP=" + state.mp());
+		System.out.println("ADDRESS            STACK              MEMORY");
+		for(int i=0;i!=Math.max(state.sp(),state.mp());++i) {
+			System.out.print(new w256(i));
+			System.out.print(" ");
+			// Stack
+			if(i < state.sp()) {
+				System.out.print(state.peek(i));
+			} else {
+				System.out.print("                  ");
+			}
+			System.out.print(" ");
+			if(i < state.mp()) {
+				System.out.print(state.peekMemory(i));
+			} else {
+				System.out.print("                  ");
+			}
+			System.out.print(" ");
+			System.out.println();
+		}
+	}
+
 	public static void main(String[] args) {
-		ArrayState state = new ArrayState(new byte[] {PUSH1, 0x3, PUSH1, 0x2, ADD});
-		Bytecode.execute(state);
-		Bytecode.execute(state);
-		Bytecode.execute(state);
-		System.out.println("GOT: " + state);
+		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16 });
+		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.codeSize()) {
+			Bytecode.execute(state);
+		}
+		printState(state);
 	}
 }

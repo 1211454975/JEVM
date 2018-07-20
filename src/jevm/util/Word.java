@@ -85,6 +85,20 @@ public class Word {
 		return "0x" + r;
 	}
 
+	/**
+	 * Return an array of bytes in big endian form
+	 *
+	 * @return
+	 */
+	public byte[] toByteArray() {
+		return toBigEndianBytes(ints);
+	}
+
+	/**
+	 * Get a (signed) biginteger representation of this word
+	 *
+	 * @return
+	 */
 	public BigInteger toBigInteger() {
 		byte[] bytes = toBigEndianBytes(ints);
 		return new BigInteger(bytes);
@@ -93,7 +107,7 @@ public class Word {
 	public final static class w32 extends Word {
 
 		public w32() {
-			super(4);
+			super(1);
 		}
 
 		public w32(byte[] bytes) {
@@ -230,31 +244,31 @@ public class Word {
 		public static final w256 ONE = new w256(1);
 
 		public w256() {
-			super(4);
+			super(8);
 		}
 
 		public w256(int[] ints) {
-			super(4, ints);
+			super(8, ints);
 		}
 
 		public w256(byte[] bytes) {
-			super(4, bytes);
+			super(8, bytes);
 		}
 
 		public w256(byte v) {
-			super(4,v);
+			super(8,v);
 		}
 
 		public w256(short v) {
-			super(4,v);
+			super(8,v);
 		}
 
 		public w256(int v) {
-			super(4,v);
+			super(8,v);
 		}
 
 		public w256(long v) {
-			super(4,v);
+			super(8,v);
 		}
 
 		public w256 add(w256 rhs) {
