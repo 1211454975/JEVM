@@ -75,6 +75,10 @@ public class ArrayState implements VirtualMachine.State {
 		return mp;
 	}
 
+	@Override
+	public w256 readStack(int offset) {
+		return stack[sp - (offset + 1)];
+	}
 
 	@Override
 	public w256 pop() {

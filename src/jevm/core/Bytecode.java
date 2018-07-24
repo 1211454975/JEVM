@@ -5,6 +5,7 @@ import java.util.Stack;
 
 import jevm.core.VirtualMachine.State.Status;
 import jevm.util.ArrayState;
+import jevm.util.Hex;
 import jevm.util.Word.w256;
 
 /**
@@ -981,37 +982,24 @@ public class Bytecode {
 		}
 				// 80s: Duplication Operations
 		case DUP1:
-			throw new IllegalArgumentException("implement me");
 		case DUP2:
-			throw new IllegalArgumentException("implement me");
 		case DUP3:
-			throw new IllegalArgumentException("implement me");
 		case DUP4:
-			throw new IllegalArgumentException("implement me");
 		case DUP5:
-			throw new IllegalArgumentException("implement me");
 		case DUP6:
-			throw new IllegalArgumentException("implement me");
 		case DUP7:
-			throw new IllegalArgumentException("implement me");
 		case DUP8:
-			throw new IllegalArgumentException("implement me");
 		case DUP9:
-			throw new IllegalArgumentException("implement me");
 		case DUP10:
-			throw new IllegalArgumentException("implement me");
 		case DUP11:
-			throw new IllegalArgumentException("implement me");
 		case DUP12:
-			throw new IllegalArgumentException("implement me");
 		case DUP13:
-			throw new IllegalArgumentException("implement me");
 		case DUP14:
-			throw new IllegalArgumentException("implement me");
 		case DUP15:
-			throw new IllegalArgumentException("implement me");
-		case DUP16:
-			throw new IllegalArgumentException("implement me");
+		case DUP16:  {
+			int count = opcode - DUP1;
+			return executeDUP(count, pc, state);
+		}
 		// 90s: Exchange Operations
 		case SWAP1:
 			throw new IllegalArgumentException("implement me");
@@ -1342,6 +1330,12 @@ public class Bytecode {
 		return true;
 	}
 
+	private static boolean executeDUP(int count, int pc, VirtualMachine.State state) {
+		state.push(state.readStack(count));
+		state.jump(pc + 1);
+		return true;
+	}
+
 	public static void printState(VirtualMachine.State state) {
 		System.out.println(state.status() + ", PC=" + state.pc() + ", SP=" + state.sp() + ", MP=" + state.mp());
 		System.out.println("ADDRESS            STACK              MEMORY");
@@ -1366,11 +1360,12 @@ public class Bytecode {
 	}
 
 	public static void main(String[] args) {
-		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16 });
-		//while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.codeSize()) {
-		Bytecode.execute(state);
-		Bytecode.execute(state);
-		//}
+		//byte[] bytes = Hex.fromBigEndianString("6080604052607b600055348015601457600080fd5b5060358060226000396000f3006080604052600080fd00a165627a7a72305820eb2a49ca9445598c397756374a0f997239da31baed31403e05d0fbe5666571930029");
+		//ArrayState state = new ArrayState(bytes);
+		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16, (byte) DUP3 });
+		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.codeSize()) {
+			Bytecode.execute(state);
+		}
 		System.out.println("STATE: " + state);
 		//printState(state);
 	}

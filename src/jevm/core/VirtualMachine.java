@@ -69,6 +69,13 @@ public class VirtualMachine {
 		public int mp();
 
 		/**
+		 * Read ith item off stack, where zero'th item is last pushed on.
+		 *
+		 * @return
+		 */
+		public w256 readStack(int ith);
+
+		/**
 		 * Pop word of the stack.
 		 *
 		 * @return
