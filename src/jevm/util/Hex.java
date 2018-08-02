@@ -88,7 +88,8 @@ public class Hex {
 //			System.out.println();
 //			i = i + opcode.width;
 //		}
-		BigInteger value = BigInteger.valueOf(5);
-		System.out.println("HEX IS: " + toBigEndianString(value.toByteArray()));
+		BigInteger value = new BigInteger("100000000000000000000000000000",16);
+		byte[] bytes = value.toByteArray();
+		System.out.println("HEX IS: " + Hex.toBigEndianString(bytes));
 	}
 }

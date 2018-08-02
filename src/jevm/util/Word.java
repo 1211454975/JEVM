@@ -79,8 +79,14 @@ public class Word {
 	public String toString() {
 		String r = "";
 		for (int i = 0; i != ints.length; ++i) {
-			int b = ints[i] & 0xff;
-			r = r + String.format("%02X", b);
+			int b1 = (ints[i] >> 24) & 0xff;
+			int b2 = (ints[i] >> 16) & 0xff;
+			int b3 = (ints[i] >> 8) & 0xff;
+			int b4 = ints[i] & 0xff;
+			r = r + String.format("%02X", b1);
+			r = r + String.format("%02X", b2);
+			r = r + String.format("%02X", b3);
+			r = r + String.format("%02X", b4);
 		}
 		return "0x" + r;
 	}
@@ -694,9 +700,12 @@ public class Word {
 //		testAddition();
 //		testNegation();
 //		testToInt();
-		w32 w1 = new w32(123);
-		w32 w2 = new w32(Integer.MIN_VALUE);
-		System.out.println("GOT: " + w1.toBigInteger() + " < " + w2.toBigInteger() + " : " + w1.unsignedLessThan(w2));
-		System.out.println("DONE");
+//		w32 w1 = new w32(123);
+//		w32 w2 = new w32(Integer.MIN_VALUE);
+//		System.out.println("GOT: " + w1.toBigInteger() + " < " + w2.toBigInteger() + " : " + w1.unsignedLessThan(w2));
+//		System.out.println("DONE");
+		BigInteger v = new BigInteger("10000000000000000000000000000",16);
+		w256 w = new w256(v.toByteArray());
+		System.out.println(w);
 	}
 }
