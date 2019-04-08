@@ -146,6 +146,11 @@ public class Word {
 			return this.add(rhs.negate());
 		}
 
+		public w32 multiply(w32 rhs) {
+			int[] result = fixedwidth_twoscomplement_multiplication(ints, rhs.ints);
+			return new w32(result);
+		}
+
 		public w32 negate() {
 			int[] result = fixedwidth_twoscomplement_negation(ints);
 			return new w32(result);
@@ -227,6 +232,11 @@ public class Word {
 			return this.add(rhs.negate());
 		}
 
+		public w160 multiply(w160 rhs) {
+			int[] result = fixedwidth_twoscomplement_multiplication(ints, rhs.ints);
+			return new w160(result);
+		}
+
 		public w160 negate() {
 			int[] result = fixedwidth_twoscomplement_negation(ints);
 			return new w160(result);
@@ -287,6 +297,11 @@ public class Word {
 			return this.add(rhs.negate());
 		}
 
+		public w256 multiply(w256 rhs) {
+			int[] result = fixedwidth_twoscomplement_multiplication(ints, rhs.ints);
+			return new w256(result);
+		}
+
 		public w256 negate() {
 			int[] result = fixedwidth_twoscomplement_negation(ints);
 			return new w256(result);
@@ -327,6 +342,27 @@ public class Word {
 		}
 	}
 
+	/**
+	 * Perform a fixed-width two's complement increment (i.e. by one) with wrap
+	 * around semantics.
+	 *
+	 * @param lhs
+	 *            bytes for left-hand side in big endian form.
+	 * @return
+	 */
+	private static int[] fixedwidth_twoscomplement_increment(int[] lhs) {
+		int[] result = new int[lhs.length];
+		// Set carry to one for increment
+		int carry = 1;
+		// Push carry all the way through whilst positive.
+		for (int i = result.length - 1; i >= 0 && carry == 1; --i) {
+			long v = ((long) lhs[i]) + carry;
+			result[i] = (int) v;
+			carry = (v & 0xffffffffffffff00L) == 0 ? 0 : 1;
+		}
+		// Done
+		return result;
+	}
 
 	/**
 	 * Perform a fixed-width two's complement addition with wrap around semantics.
@@ -349,6 +385,49 @@ public class Word {
 		return result;
 	}
 
+	/**
+	 * Perform a fixed-width two's complement multiplication with wrap around semantics.
+	 *
+	 * @param lhs
+	 *            bytes for left-hand side in big endian form.
+	 * @param rhs
+	 *            bytes for right-hand side in big endian form (must equal lhs
+	 *            length)
+	 * @return
+	 */
+	private static int[] fixedwidth_twoscomplement_multiplication(int[] lhs, int[] rhs) {
+		// Determine sign of lhs
+		boolean l_sign = lhs[0] < 0;
+		// create space for result
+		int[] result = new int[lhs.length];
+		// process multiplication based on lhs
+		if(l_sign) {
+			// negate rhs
+			rhs = fixedwidth_twoscomplement_negation(rhs);
+			//
+			while(!fixedwidth_bitwise_iszero(lhs)) {
+				result = fixedwidth_twoscomplement_addition(result,rhs);
+				lhs = fixedwidth_twoscomplement_increment(lhs);
+			}
+		} else {
+			// negate lhs
+			lhs = fixedwidth_twoscomplement_negation(lhs);
+			//
+			while(!fixedwidth_bitwise_iszero(lhs)) {
+				result = fixedwidth_twoscomplement_addition(result,rhs);
+				lhs = fixedwidth_twoscomplement_increment(lhs);
+			}
+		}
+		// Done
+		return result;
+	}
+
+	/**
+	 * Perform a fixed-width twos complement negation.
+	 *
+	 * @param lhs
+	 * @return
+	 */
 	private static int[] fixedwidth_twoscomplement_negation(int[] lhs) {
 		int[] result = new int[lhs.length];
 		int carry = 1;
@@ -503,6 +582,21 @@ public class Word {
 			result[i] = lhs[i] & rhs[i];
 		}
 		return result;
+	}
+
+	/**
+	 * Check whether a given array of integers is equivalent to zero or not.
+	 *
+	 * @param lhs
+	 * @return
+	 */
+	private static boolean fixedwidth_bitwise_iszero(int[] lhs) {
+		for(int i=0;i!=lhs.length;++i) {
+			if(lhs[i] != 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -680,6 +774,21 @@ public class Word {
 		}
 	}
 
+
+	public static void testMultiplication() {
+		System.out.println("*** TESTING MULTIPLICATION");
+		for (int i = MIN; i < MAX; ++i) {
+			for (int j = MIN; j < MAX; ++j) {
+				w32 l = new w32(i);
+				w32 r = new w32(j);
+				w32 t = new w32(i*j);
+				if(!l.multiply(r).equals(t)) {
+					System.out.println("*** ERROR: " + l.toBigInteger() + " * " + r.toBigInteger() + " = " + l.multiply(r).toBigInteger());
+				}
+			}
+		}
+	}
+
 	public static void testToInt() {
 		System.out.println("*** TESTING TOINT");
 		for (int i = MIN; i < MAX; ++i) {
@@ -698,6 +807,7 @@ public class Word {
 //		System.out.println("GOT: " + w.negate().toBigInteger());
 //		System.out.println("GOT: " + w.add(w).toBigInteger());
 //		testAddition();
+		testMultiplication();
 //		testNegation();
 //		testToInt();
 //		w32 w1 = new w32(123);

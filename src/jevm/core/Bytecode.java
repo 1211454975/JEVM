@@ -1092,7 +1092,9 @@ public class Bytecode {
 	private static boolean executeMUL(int pc, VirtualMachine.State state) {
 		w256 rhs = state.pop();
 		w256 lhs = state.pop();
-		throw new UnsupportedOperationException();
+		state.push(lhs.multiply(rhs));
+		state.jump(pc + 1);
+		return true;
 	}
 
 	private static boolean executeDIV(int pc, VirtualMachine.State state) {
