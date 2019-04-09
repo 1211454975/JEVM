@@ -1060,12 +1060,17 @@ public class Bytecode {
 		case REVERT:
 			throw new IllegalArgumentException("implement me");
 		case INVALID:
-			throw new IllegalArgumentException("implement me");
+			return executeINVALID(pc, state);
 		case SELFDESTRUCT:
 			throw new IllegalArgumentException("implement me");
 		default:
 			throw new IllegalArgumentException("unknown bytecode encountered");
 		}
+	}
+
+	private static boolean executeINVALID(int pc, VirtualMachine.State state) {
+		state.halt(VirtualMachine.State.Status.EXCEPTION);
+		return false;
 	}
 
 	private static boolean executeSTOP(int pc, VirtualMachine.State state) {
