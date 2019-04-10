@@ -50,23 +50,31 @@ public class ArrayMemory<T> implements VirtualMachine.Memory<T> {
 	@Override
 	public T read(w256 address) {
 		if(address.isInt()) {
-			int addr = address.toInt();
-			// NOTE: negative address caught here
-			return memory[addr];
+			return read(address.toInt());
 		} else {
 			throw new IllegalArgumentException("invalid memory address");
 		}
 	}
 
 	@Override
+	public T read(int address) {
+		return memory[address];
+	}
+
+
+	@Override
 	public boolean write(w256 address, T value) {
-		int addr = address.toInt();
 		if(address.isInt()) {
-			memory[addr] = value;
-			return true;
+			return write(address.toInt(),value);
 		} else {
 			throw new IllegalArgumentException("invalid memory address");
 		}
+	}
+
+	@Override
+	public boolean write(int address, T value) {
+		memory[address] = value;
+		return true;
 	}
 
 	@Override
@@ -98,11 +106,6 @@ public class ArrayMemory<T> implements VirtualMachine.Memory<T> {
 	@Override
 	public int used() {
 		return fp;
-	}
-
-	@Override
-	public T peek(int address) {
-		return memory[address];
 	}
 
 	@Override

@@ -118,7 +118,7 @@ public class ArrayState implements VirtualMachine.State {
 			if(pc == i) {
 				r += "*";
 			}
-			Bytecode.Opcode op = Bytecode.decode(code.peek(i));
+			Bytecode.Opcode op = Bytecode.decode(code.read(i));
 			r += op;
 			if(op.width > 1) {
 				r += " 0x" + Hex.toBigEndianString(code.peekBytes(i + 1, i + op.width));

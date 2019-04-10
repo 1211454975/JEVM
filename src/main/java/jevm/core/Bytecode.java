@@ -837,7 +837,7 @@ public class Bytecode {
 	public static boolean execute(VirtualMachine.State state) {
 		VirtualMachine.Memory<Byte> code = state.getCodeMemory();
 		int pc = state.pc();
-		int opcode = code.peek(pc) & 0xff;
+		int opcode = code.read(pc) & 0xff;
 		switch (opcode) {
 		case STOP:
 			return executeSTOP(pc, state);
@@ -1016,37 +1016,24 @@ public class Bytecode {
 		}
 		// 90s: Exchange Operations
 		case SWAP1:
-			throw new IllegalArgumentException("implement me");
 		case SWAP2:
-			throw new IllegalArgumentException("implement me");
 		case SWAP3:
-			throw new IllegalArgumentException("implement me");
 		case SWAP4:
-			throw new IllegalArgumentException("implement me");
 		case SWAP5:
-			throw new IllegalArgumentException("implement me");
 		case SWAP6:
-			throw new IllegalArgumentException("implement me");
 		case SWAP7:
-			throw new IllegalArgumentException("implement me");
 		case SWAP8:
-			throw new IllegalArgumentException("implement me");
 		case SWAP9:
-			throw new IllegalArgumentException("implement me");
 		case SWAP10:
-			throw new IllegalArgumentException("implement me");
 		case SWAP11:
-			throw new IllegalArgumentException("implement me");
 		case SWAP12:
-			throw new IllegalArgumentException("implement me");
 		case SWAP13:
-			throw new IllegalArgumentException("implement me");
 		case SWAP14:
-			throw new IllegalArgumentException("implement me");
 		case SWAP15:
-			throw new IllegalArgumentException("implement me");
-		case SWAP16:
-			throw new IllegalArgumentException("implement me");
+		case SWAP16: {
+			int count = opcode - SWAP1 + 1;
+			return executeSWAP(count, pc, state);
+		}
 		// a0s: Logging Operations
 		case LOG0:
 			throw new IllegalArgumentException("implement me");
@@ -1377,7 +1364,7 @@ public class Bytecode {
 			// Jump to the target address
 			target = address.toInt();
 			// Sanity check jump target
-			if (!address.isInt() || target < 0 || target >= code.used() || code.peek(target) != JUMPDEST) {
+			if (!address.isInt() || target < 0 || target >= code.used() || code.read(target) != JUMPDEST) {
 				state.halt(Status.EXCEPTION);
 				return false;
 			}
@@ -1393,7 +1380,7 @@ public class Bytecode {
 		w256 address = stack.pop();
 		int target = address.toInt();
 		// Sanity check jump target
-		if (!address.isInt() || target < 0 || target >= code.used() || code.peek(target) != JUMPDEST) {
+		if (!address.isInt() || target < 0 || target >= code.used() || code.read(target) != JUMPDEST) {
 			state.halt(Status.EXCEPTION);
 			return false;
 		} else {
@@ -1414,7 +1401,7 @@ public class Bytecode {
 		byte[] bytes = new byte[count];
 		pc = pc + 1;
 		for (int i = 0; i != count; ++i) {
-			bytes[i] = code.peek(pc + i);
+			bytes[i] = code.read(pc + i);
 		}
 		// push onto stack
 		stack.push(new w256(bytes));
@@ -1424,11 +1411,23 @@ public class Bytecode {
 
 	private static boolean executeDUP(int count, int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		System.out.println("DUP: " + count + " : " +stack.used());
-		stack.push(stack.peek(stack.used() - count));
+		stack.push(stack.read(stack.used() - count));
 		state.jump(pc + 1);
 		return true;
 	}
+
+	private static boolean executeSWAP(int count, int pc, VirtualMachine.State state) {
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		int ith = stack.used() - 1;
+		int jth = stack.used() - (count + 1);
+		//
+		w256 tmp = stack.read(ith);
+		stack.write(ith, stack.read(jth));
+		stack.write(jth, tmp);
+		state.jump(pc + 1);
+		return true;
+	}
+
 
 	public static void printState(VirtualMachine.State state) {
 		VirtualMachine.Memory<Byte> code = state.getCodeMemory();
@@ -1444,13 +1443,13 @@ public class Bytecode {
 			System.out.print(" ");
 			// Stack
 			if(i < stack.used()) {
-				System.out.print(stack.peek(i));
+				System.out.print(stack.read(i));
 			} else {
 				System.out.print("                  ");
 			}
 			System.out.print(" ");
 			if(i < local.used()) {
-				System.out.print(local.peek(i));
+				System.out.print(local.read(i));
 			} else {
 				System.out.print("                  ");
 			}
@@ -1462,7 +1461,7 @@ public class Bytecode {
 	public static void main(String[] args) {
 		//byte[] bytes = Hex.fromBigEndianString("6080604052607b600055348015601457600080fd5b5060358060226000396000f3006080604052600080fd00a165627a7a72305820eb2a49ca9445598c397756374a0f997239da31baed31403e05d0fbe5666571930029");
 		//ArrayState state = new ArrayState(bytes);
-		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16, (byte) DUP2 });
+		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16 });
 		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.getCodeMemory().used()) {
 			Bytecode.execute(state);
 		}

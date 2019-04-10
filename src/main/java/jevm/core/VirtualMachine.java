@@ -117,6 +117,15 @@ public class VirtualMachine {
 		public T read(w256 address);
 
 		/**
+		 * Read word from given address in memory.
+		 *
+		 * @param address
+		 *            identifies word to read.
+		 * @return
+		 */
+		public T read(int address);
+
+		/**
 		 * Write word word to given address in memory.
 		 *
 		 * @param address
@@ -124,6 +133,15 @@ public class VirtualMachine {
 		 * @return
 		 */
 		public boolean write(w256 address, T value);
+
+		/**
+		 * Write word word to given address in memory.
+		 *
+		 * @param address
+		 * @param value
+		 * @return
+		 */
+		public boolean write(int address, T value);
 
 		/**
 		 * Ensure sufficient storage to access the given address. If the address does not
@@ -148,14 +166,6 @@ public class VirtualMachine {
 		 * @return
 		 */
 		public int used();
-
-		/**
-		 * Peek a word from the given address in memory
-		 *
-		 * @param address
-		 * @return
-		 */
-		public T peek(int address);
 	}
 
 	public interface Stack<T> extends Memory<T> {

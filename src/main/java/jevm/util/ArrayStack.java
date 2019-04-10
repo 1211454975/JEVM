@@ -25,7 +25,7 @@ public class ArrayStack<T> extends ArrayMemory<T> implements VirtualMachine.Stac
 
 	@Override
 	public T pop() {
-		return peek(--fp);
+		return read(--fp);
 	}
 
 	@Override
