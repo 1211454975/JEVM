@@ -1360,7 +1360,7 @@ public class Bytecode {
 		w256 address = stack.pop();
 		w256 w = stack.pop();
 		// FIXME: do we fail early if address invalid?
-		if (w.equals(w256.ZERO)) {
+		if (!w.equals(w256.ZERO)) {
 			// Jump to the target address
 			target = address.toInt();
 			// Sanity check jump target
