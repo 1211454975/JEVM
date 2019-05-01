@@ -390,13 +390,13 @@ public class Word {
 	private static int[] fixedwidth_twoscomplement_increment(int[] lhs) {
 		int[] result = new int[lhs.length];
 		// Set carry to one for increment
-		int c = 1;
+		long carry = 1;
 		// Push carry all the way through whilst positive.
-		for (int i = result.length - 1; i >= 0 && c == 1; --i) {
-			int b = lhs[i];
-			int a = b + c;
-			result[i] = a;
-			c = ((b ^ a) & (c ^ a)) < 0 ? 1 : 0;
+		for (int i = result.length - 1; i >= 0; --i) {
+			long a = (lhs[i]) & 0xFFFFFFFFL;
+			long b = a + carry;
+			result[i] = (int) b;
+			carry = (b & 0xF00000000L) == 0 ? 0L : 1L;
 		}
 		// Done
 		return result;
@@ -822,7 +822,7 @@ public class Word {
 
 	public static long MIN = Integer.MIN_VALUE;
 	public static long MAX = Integer.MAX_VALUE;
-	public static long INC = (Integer.MAX_VALUE >> 4) - 1;
+	public static long INC = (Integer.MAX_VALUE >> 20) - 1;
 
 	public static void testIncrement() {
 		System.out.println("*** TESTING INCREMENT");
@@ -906,8 +906,8 @@ public class Word {
 //		System.out.println("DONE");
 		System.out.println(Long.toHexString(-4294967296L));
 		//w256 w = new w256(-4294967296L);
-		w256 w = new w256(2147483584L);
-		w256 v = new w256(-32);
+		w256 w = new w256(Integer.MIN_VALUE);
+		w256 v = w.increment();
 		System.out.println(w + " :  " + w.toBigInteger());
 		System.out.println(v + " :  " + v.toBigInteger());
 		w = w.add(v);
