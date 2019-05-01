@@ -149,6 +149,14 @@ public class Word {
 			super(1,v);
 		}
 
+		/**
+		 * Increment by one.
+		 */
+		public w32 increment() {
+			int[] result = fixedwidth_twoscomplement_increment(ints);
+			return new w32(result);
+		}
+
 		public w32 add(w32 rhs) {
 			int[] result = fixedwidth_twoscomplement_addition(ints, rhs.ints);
 			return new w32(result);
@@ -235,6 +243,14 @@ public class Word {
 			super(5,v);
 		}
 
+		/**
+		 * Increment by one.
+		 */
+		public w160 increment() {
+			int[] result = fixedwidth_twoscomplement_increment(ints);
+			return new w160(result);
+		}
+
 		public w160 add(w160 rhs) {
 			int[] result = fixedwidth_twoscomplement_addition(ints, rhs.ints);
 			return new w160(result);
@@ -298,6 +314,14 @@ public class Word {
 
 		public w256(long v) {
 			super(8,v);
+		}
+
+		/**
+		 * Increment by one.
+		 */
+		public w256 increment() {
+			int[] result = fixedwidth_twoscomplement_increment(ints);
+			return new w256(result);
 		}
 
 		public w256 add(w256 rhs) {
@@ -762,13 +786,24 @@ public class Word {
 	public static int MIN = java.lang.Short.MIN_VALUE;
 	public static int MAX = java.lang.Short.MAX_VALUE;
 
+	public static void testIncrement() {
+		System.out.println("*** TESTING INCREMENT");
+		for (int i = MIN; i < MAX; ++i) {
+			w256 w = new w256(i).increment();
+			w256 nw = new w256(i+1);
+			if(!w.equals(nw)) {
+				System.out.println("*** ERROR: " + w.toBigInteger() + " vs " + nw.toBigInteger());
+			}
+		}
+	}
+
 	public static void testNegation() {
 		System.out.println("*** TESTING NEGATION");
 		for (int i = MIN; i < MAX; ++i) {
-			w32 w = new w32(i);
-			w32 nw = new w32(-i);
+			w256 w = new w256(i);
+			w256 nw = new w256(-i);
 			if(!w.negate().equals(nw)) {
-				System.out.println("*** ERROR: " + w.toBigInteger() + " vs " + nw.toBigInteger());
+				System.out.println("*** ERROR: " + w.negate().toBigInteger() + " vs " + nw.toBigInteger());
 			}
 		}
 	}
@@ -777,9 +812,9 @@ public class Word {
 		System.out.println("*** TESTING ADDITION");
 		for (int i = MIN; i < MAX; ++i) {
 			for (int j = MIN; j < MAX; ++j) {
-				w32 l = new w32(i);
-				w32 r = new w32(j);
-				w32 t = new w32(i+j);
+				w256 l = new w256(i);
+				w256 r = new w256(j);
+				w256 t = new w256(i+j);
 				if(!l.add(r).equals(t)) {
 					System.out.println("*** ERROR: " + l.toBigInteger() + " + " + r.toBigInteger() + " = " + l.add(r));
 				}
@@ -819,8 +854,9 @@ public class Word {
 //		System.out.println("GOT: " + w.toBigInteger());
 //		System.out.println("GOT: " + w.negate().toBigInteger());
 //		System.out.println("GOT: " + w.add(w).toBigInteger());
-//		testAddition();
-		testMultiplication();
+		testIncrement();
+		//testAddition();
+//		testMultiplication();
 //		testNegation();
 //		testToInt();
 //		w32 w1 = new w32(123);
