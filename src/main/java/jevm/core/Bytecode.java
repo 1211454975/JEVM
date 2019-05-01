@@ -835,8 +835,9 @@ public class Bytecode {
 	 * @param state
 	 */
 	public static boolean execute(VirtualMachine.State state) {
+		VirtualMachine.Memory<Byte> code = state.getCodeMemory();
 		int pc = state.pc();
-		int opcode = state.readCode(pc) & 0xff;
+		int opcode = code.read(pc) & 0xff;
 		switch (opcode) {
 		case STOP:
 			return executeSTOP(pc, state);
@@ -942,9 +943,9 @@ public class Bytecode {
 		case MSTORE8:
 			throw new IllegalArgumentException("implement me");
 		case SLOAD:
-			throw new IllegalArgumentException("implement me");
+			return executeSLOAD(pc,state);
 		case SSTORE:
-			throw new IllegalArgumentException("implement me");
+			return executeSSTORE(pc,state);
 		case JUMP:
 			return executeJUMP(pc, state);
 		case JUMPI:
@@ -954,7 +955,7 @@ public class Bytecode {
 		case MSIZE:
 			throw new IllegalArgumentException("implement me");
 		case GAS:
-			throw new IllegalArgumentException("implement me");
+			return executeGAS(pc, state);
 		case JUMPDEST:
 			return executeJUMPDEST(pc, state);
 		// 60s & 70s: Push Operations
@@ -1010,42 +1011,29 @@ public class Bytecode {
 		case DUP14:
 		case DUP15:
 		case DUP16:  {
-			int count = opcode - DUP1;
+			int count = opcode - DUP1 + 1;
 			return executeDUP(count, pc, state);
 		}
 		// 90s: Exchange Operations
 		case SWAP1:
-			throw new IllegalArgumentException("implement me");
 		case SWAP2:
-			throw new IllegalArgumentException("implement me");
 		case SWAP3:
-			throw new IllegalArgumentException("implement me");
 		case SWAP4:
-			throw new IllegalArgumentException("implement me");
 		case SWAP5:
-			throw new IllegalArgumentException("implement me");
 		case SWAP6:
-			throw new IllegalArgumentException("implement me");
 		case SWAP7:
-			throw new IllegalArgumentException("implement me");
 		case SWAP8:
-			throw new IllegalArgumentException("implement me");
 		case SWAP9:
-			throw new IllegalArgumentException("implement me");
 		case SWAP10:
-			throw new IllegalArgumentException("implement me");
 		case SWAP11:
-			throw new IllegalArgumentException("implement me");
 		case SWAP12:
-			throw new IllegalArgumentException("implement me");
 		case SWAP13:
-			throw new IllegalArgumentException("implement me");
 		case SWAP14:
-			throw new IllegalArgumentException("implement me");
 		case SWAP15:
-			throw new IllegalArgumentException("implement me");
-		case SWAP16:
-			throw new IllegalArgumentException("implement me");
+		case SWAP16: {
+			int count = opcode - SWAP1 + 1;
+			return executeSWAP(count, pc, state);
+		}
 		// a0s: Logging Operations
 		case LOG0:
 			throw new IllegalArgumentException("implement me");
@@ -1081,6 +1069,12 @@ public class Bytecode {
 		}
 	}
 
+	private static boolean executeGAS(int pc, VirtualMachine.State state) {
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		stack.push(new w256(state.gas()));
+		return true;
+	}
+
 	private static boolean executeINVALID(int pc, VirtualMachine.State state) {
 		state.halt(VirtualMachine.State.Status.EXCEPTION);
 		return false;
@@ -1092,224 +1086,285 @@ public class Bytecode {
 	}
 
 	private static boolean executeADD(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
-		state.push(lhs.add(rhs));
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
+		stack.push(lhs.add(rhs));
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeSUB(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
-		state.push(lhs.subtract(rhs));
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
+		stack.push(lhs.subtract(rhs));
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeMUL(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
-		state.push(lhs.multiply(rhs));
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
+		stack.push(lhs.multiply(rhs));
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeDIV(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeSDIV(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeMOD(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeSMOD(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeADDMOD(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeMULMOD(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeEXP(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeSIGNEXTEND(int pc, VirtualMachine.State state) {
-		w256 w1 = state.pop();
-		w256 w0 = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 w1 = stack.pop();
+		w256 w0 = stack.pop();
 		int offset = w0.toInt();
 		// NOTE: negative offset has no effect
 		w1 = (offset < 31) ? w1.signExtend(offset + 1) : w1;
-		state.push(w1);
+		stack.push(w1);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeLT(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		boolean b = lhs.unsignedLessThan(rhs);
-		state.push(b ? w256.ONE : w256.ZERO);
+		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeSLT(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		boolean b = lhs.signedLessThan(rhs);
-		state.push(b ? w256.ONE : w256.ZERO);
+		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeGT(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		boolean b = rhs.unsignedLessThan(lhs);
-		state.push(b ? w256.ONE : w256.ZERO);
+		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeSGT(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		boolean b = rhs.signedLessThan(lhs);
-		state.push(b ? w256.ONE : w256.ZERO);
+		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeEQ(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
 		boolean b = lhs.equals(rhs);
-		state.push(b ? w256.ONE : w256.ZERO);
+		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeISZERO(int pc, VirtualMachine.State state) {
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 lhs = stack.pop();
 		boolean b = lhs.equals(w256.ZERO);
-		state.push(b ? w256.ONE : w256.ZERO);
+		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeAND(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
-		state.push(lhs.and(rhs));
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
+		stack.push(lhs.and(rhs));
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeOR(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
-		state.push(lhs.or(rhs));
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
+		stack.push(lhs.or(rhs));
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeXOR(int pc, VirtualMachine.State state) {
-		w256 rhs = state.pop();
-		w256 lhs = state.pop();
-		state.push(lhs.xor(rhs));
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 rhs = stack.pop();
+		w256 lhs = stack.pop();
+		stack.push(lhs.xor(rhs));
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeNOT(int pc, VirtualMachine.State state) {
-		w256 lhs = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 lhs = stack.pop();
 		boolean b = lhs.equals(w256.ZERO);
-		state.push(b ? w256.ONE : w256.ZERO);
+		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
 		return true;
 	}
 
 	private static boolean executeBYTE(int pc, VirtualMachine.State state) {
-		w256 w0 = state.pop();
-		w256 w1 = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		w256 w0 = stack.pop();
+		w256 w1 = stack.pop();
 		int offset = w0.toInt();
 		if(!w0.isInt() || offset < 0 || offset >= 32) {
-			state.push(w256.ZERO);
+			stack.push(w256.ZERO);
 		} else {
 			byte[] bytes = w1.toByteArray();
-			state.push(new w256(bytes[offset]));
+			stack.push(new w256(bytes[offset]));
 		}
 		state.jump(pc+1);
 		return true;
 	}
 
 	private static boolean executePOP(int pc, VirtualMachine.State state) {
-		state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		stack.pop();
 		return true;
 	}
 
 	private static boolean executeMLOAD(int pc, VirtualMachine.State state) {
-		w256 address = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<w256> local = state.getLocalMemory();
+		w256 address = stack.pop();
 		// Ensure enough memory
-		if(!state.expandMemory(address)) {
+		if(!local.expand(address)) {
 			state.halt(VirtualMachine.State.Status.EXCEPTION);
 			return false;
 		} else {
-			state.push(state.readMemory(address));
+			stack.push(local.read(address));
 			state.jump(pc+1);
 			return true;
 		}
 	}
 
 	private static boolean executeMSTORE(int pc, VirtualMachine.State state) {
-		w256 address = state.pop();
-		w256 w = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<w256> local = state.getLocalMemory();
+		w256 address = stack.pop();
+		w256 w = stack.pop();
 		// Ensure enough memory
-		if (!state.expandMemory(address)) {
+		if (!local.expand(address)) {
 			state.halt(VirtualMachine.State.Status.EXCEPTION);
 			return false;
 		} else {
 			// Update the target location
-			state.writeMemory(address, w);
+			local.write(address, w);
+			state.jump(pc+1);
+			return true;
+		}
+	}
+
+	private static boolean executeSLOAD(int pc, VirtualMachine.State state) {
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<w256> storage = state.getStorageMemory();
+		w256 address = stack.pop();
+		// Ensure enough memory
+		if(!storage.expand(address)) {
+			state.halt(VirtualMachine.State.Status.EXCEPTION);
+			return false;
+		} else {
+			stack.push(storage.read(address));
+			state.jump(pc+1);
+			return true;
+		}
+	}
+
+	private static boolean executeSSTORE(int pc, VirtualMachine.State state) {
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<w256> storage = state.getStorageMemory();
+		w256 address = stack.pop();
+		w256 w = stack.pop();
+		// Ensure enough memory
+		if (!storage.expand(address)) {
+			state.halt(VirtualMachine.State.Status.EXCEPTION);
+			return false;
+		} else {
+			// Update the target location
+			storage.write(address, w);
 			state.jump(pc+1);
 			return true;
 		}
 	}
 
 	private static boolean executeJUMPI(int pc, VirtualMachine.State state) {
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<Byte> code = state.getCodeMemory();
 		int target = pc + 1;
-		w256 address = state.pop();
-		w256 w = state.pop();
+		w256 address = stack.pop();
+		w256 w = stack.pop();
 		// FIXME: do we fail early if address invalid?
-		if (w.equals(w256.ZERO)) {
+		if (!w.equals(w256.ZERO)) {
 			// Jump to the target address
 			target = address.toInt();
 			// Sanity check jump target
-			if (!address.isInt() || target < 0 || target >= state.codeSize() || state.readCode(target) != JUMPDEST) {
+			if (!address.isInt() || target < 0 || target >= code.used() || code.read(target) != JUMPDEST) {
 				state.halt(Status.EXCEPTION);
 				return false;
 			}
@@ -1320,10 +1375,12 @@ public class Bytecode {
 	}
 
 	private static boolean executeJUMP(int pc, VirtualMachine.State state) {
-		w256 address = state.pop();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<Byte> code = state.getCodeMemory();
+		w256 address = stack.pop();
 		int target = address.toInt();
 		// Sanity check jump target
-		if (!address.isInt() || target < 0 || target >= state.codeSize() || state.readCode(target) != JUMPDEST) {
+		if (!address.isInt() || target < 0 || target >= code.used() || code.read(target) != JUMPDEST) {
 			state.halt(Status.EXCEPTION);
 			return false;
 		} else {
@@ -1338,39 +1395,61 @@ public class Bytecode {
 	}
 
 	private static boolean executePUSH(int count, int pc, VirtualMachine.State state) {
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<Byte> code = state.getCodeMemory();
 		// extract operand
 		byte[] bytes = new byte[count];
 		pc = pc + 1;
 		for (int i = 0; i != count; ++i) {
-			bytes[i] = state.readCode(pc + i);
+			bytes[i] = code.read(pc + i);
 		}
 		// push onto stack
-		state.push(new w256(bytes));
+		stack.push(new w256(bytes));
 		state.jump(pc + count);
 		return true;
 	}
 
 	private static boolean executeDUP(int count, int pc, VirtualMachine.State state) {
-		state.push(state.readStack(count));
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		stack.push(stack.read(stack.used() - count));
 		state.jump(pc + 1);
 		return true;
 	}
 
+	private static boolean executeSWAP(int count, int pc, VirtualMachine.State state) {
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		int ith = stack.used() - 1;
+		int jth = stack.used() - (count + 1);
+		//
+		w256 tmp = stack.read(ith);
+		stack.write(ith, stack.read(jth));
+		stack.write(jth, tmp);
+		state.jump(pc + 1);
+		return true;
+	}
+
+
 	public static void printState(VirtualMachine.State state) {
-		System.out.println(state.status() + ", PC=" + state.pc() + ", SP=" + state.sp() + ", MP=" + state.mp());
+		VirtualMachine.Memory<Byte> code = state.getCodeMemory();
+		VirtualMachine.Stack<w256> stack = state.getStackMemory();
+		VirtualMachine.Memory<w256> local = state.getLocalMemory();
+		VirtualMachine.Memory<w256> storage = state.getStorageMemory();
+		//
+		System.out.println(state.status() + ", PC=" + state.pc() + ", SP=" + stack.used() + ", MP=" + local.used());
 		System.out.println("ADDRESS            STACK              MEMORY");
-		for(int i=0;i!=Math.max(state.sp(),state.mp());++i) {
+
+		for(int i=0;i!=Math.max(stack.used(),local.used());++i) {
 			System.out.print(new w256(i));
 			System.out.print(" ");
 			// Stack
-			if(i < state.sp()) {
-				System.out.print(state.peek(i));
+			if(i < stack.used()) {
+				System.out.print(stack.read(i));
 			} else {
 				System.out.print("                  ");
 			}
 			System.out.print(" ");
-			if(i < state.mp()) {
-				System.out.print(state.peekMemory(i));
+			if(i < local.used()) {
+				System.out.print(local.read(i));
 			} else {
 				System.out.print("                  ");
 			}
@@ -1382,8 +1461,8 @@ public class Bytecode {
 	public static void main(String[] args) {
 		//byte[] bytes = Hex.fromBigEndianString("6080604052607b600055348015601457600080fd5b5060358060226000396000f3006080604052600080fd00a165627a7a72305820eb2a49ca9445598c397756374a0f997239da31baed31403e05d0fbe5666571930029");
 		//ArrayState state = new ArrayState(bytes);
-		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16, (byte) DUP3 });
-		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.codeSize()) {
+		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, PUSH1, 0x0, MSTORE, PUSH1, 0x0, MLOAD, PUSH1, 0x16 });
+		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.getCodeMemory().used()) {
 			Bytecode.execute(state);
 		}
 		System.out.println("STATE: " + state);

@@ -61,6 +61,13 @@ public class VirtualMachine {
 		public void jump(int pc);
 
 		/**
+		 * Get the amount of remaining GAS for this execution.
+		 *
+		 * @return
+		 */
+		public int gas();
+
+		/**
 		 * Get the value of the program counter.
 		 *
 		 * @return
@@ -68,98 +75,55 @@ public class VirtualMachine {
 		public int pc();
 
 		/**
-		 * Get the value of the stack pointer.
+		 * Get the contract code associated with this contract.
 		 *
 		 * @return
 		 */
-		public int sp();
+		public Memory<Byte> getCodeMemory();
 
 		/**
-		 * Get the value of the memory pointer.
-		 *
+		 * Get the stack memory associated with this machine state.
 		 * @return
 		 */
-		public int mp();
+		public Stack<w256> getStackMemory();
 
 		/**
-		 * Read ith item off stack, where zero'th item is last pushed on.
-		 *
+		 * Get the local memory associated with this machine state.
 		 * @return
 		 */
-		public w256 readStack(int ith);
-
+		public Memory<w256> getLocalMemory();
 		/**
-		 * Pop word of the stack.
-		 *
+		 * Get the contract storage associated with this machine state.
 		 * @return
 		 */
-		public w256 pop();
+		public Memory<w256> getStorageMemory();
+	}
 
+	/**
+	 * Represents portion of memory in the machine, such as for local or contract
+	 * storage.
+	 *
+	 * @author David J. Pearce
+	 *
+	 */
+	public interface Memory<T> {
 		/**
-		 * Push word onto stack.
-		 *
-		 * @param value
-		 */
-		public void push(w256 value);
-
-		/**
-		 * Peek a word from the given address on the stack
-		 *
-		 * @param address
-		 * @return
-		 */
-		public w256 peek(int address);
-
-
-		/**
-		 * Get the size of the executing code contract (in bytes).
-		 *
-		 * @return
-		 */
-		public int codeSize();
-
-		/**
-		 * Get code byte from executing contract.
-		 *
-		 * @param offset
-		 * @return
-		 */
-		public byte readCode(int offset);
-
-		/**
-		 * Get the size of the active memory portion (in slots).
-		 *
-		 * @return
-		 */
-		public w256 memorySize();
-
-		/**
-		 * Ensure sufficient memory to access the given address. If the address does not
-		 * already exist then it is initialised with zero.
-		 *
-		 * @param address
-		 * @return Flag indicating whether was able to expand memory or not (e.g.
-		 *         because hard limit encountered).
-		 */
-		public boolean expandMemory(w256 address);
-
-		/**
-		 * Read word from give address in memory.
+		 * Read word from given address in memory.
 		 *
 		 * @param address
 		 *            identifies word to read.
 		 * @return
 		 */
-		public w256 readMemory(w256 address);
+		public T read(w256 address);
 
 		/**
-		 * Peek a word from the given address in memory.
+		 * Read word from given address in memory.
 		 *
 		 * @param address
+		 *            identifies word to read.
 		 * @return
 		 */
-		public w256 peekMemory(int address);
-
+		public T read(int address);
 
 		/**
 		 * Write word word to given address in memory.
@@ -168,25 +132,56 @@ public class VirtualMachine {
 		 * @param value
 		 * @return
 		 */
-		public boolean writeMemory(w256 address, w256 value);
+		public boolean write(w256 address, T value);
 
 		/**
-		 * Read word from given address in storage.
-		 *
-		 * @param address
-		 *            identifies word to read.
-		 * @return
-		 */
-		public w256 readStorage(w256 address);
-
-		/**
-		 * Write word word to given address in storage.
+		 * Write word word to given address in memory.
 		 *
 		 * @param address
 		 * @param value
 		 * @return
 		 */
-		public boolean writeStorage(w256 address, w256 value);
+		public boolean write(int address, T value);
+
+		/**
+		 * Ensure sufficient storage to access the given address. If the address does not
+		 * already exist then it is initialised with zero.
+		 *
+		 * @param address
+		 * @return Flag indicating whether was able to expand storage or not (e.g.
+		 *         because hard limit encountered).
+		 */
+		public boolean expand(w256 address);
+
+		/**
+		 * Get the size of the active memory portion (in slots).
+		 *
+		 * @return
+		 */
+		public w256 size();
+
+		/**
+		 * Get the amount of memory actually used (in bytes).
+		 *
+		 * @return
+		 */
+		public int used();
 	}
 
+	public interface Stack<T> extends Memory<T> {
+
+		/**
+		 * Pop word of stack memory.
+		 *
+		 * @return
+		 */
+		public T pop();
+
+		/**
+		 * Push word onto stack memory.
+		 *
+		 * @param value
+		 */
+		public void push(T value);
+	}
 }
