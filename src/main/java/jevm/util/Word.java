@@ -60,7 +60,7 @@ public class Word {
 	protected Word(int n, long v) {
 		this.ints = new int[n];
 		this.ints[n-1] = (int) v;
-		this.ints[n-2] = (int) v >> 32;
+		this.ints[n-2] = (int) (v >> 32);
 		fixedwidth_twoscomplement_signextend(ints,n-2);
 	}
 
@@ -149,6 +149,14 @@ public class Word {
 			super(1,v);
 		}
 
+		/**
+		 * Increment by one.
+		 */
+		public w32 increment() {
+			int[] result = fixedwidth_twoscomplement_increment(ints);
+			return new w32(result);
+		}
+
 		public w32 add(w32 rhs) {
 			int[] result = fixedwidth_twoscomplement_addition(ints, rhs.ints);
 			return new w32(result);
@@ -235,6 +243,14 @@ public class Word {
 			super(5,v);
 		}
 
+		/**
+		 * Increment by one.
+		 */
+		public w160 increment() {
+			int[] result = fixedwidth_twoscomplement_increment(ints);
+			return new w160(result);
+		}
+
 		public w160 add(w160 rhs) {
 			int[] result = fixedwidth_twoscomplement_addition(ints, rhs.ints);
 			return new w160(result);
@@ -298,6 +314,14 @@ public class Word {
 
 		public w256(long v) {
 			super(8,v);
+		}
+
+		/**
+		 * Increment by one.
+		 */
+		public w256 increment() {
+			int[] result = fixedwidth_twoscomplement_increment(ints);
+			return new w256(result);
 		}
 
 		public w256 add(w256 rhs) {
@@ -366,12 +390,13 @@ public class Word {
 	private static int[] fixedwidth_twoscomplement_increment(int[] lhs) {
 		int[] result = new int[lhs.length];
 		// Set carry to one for increment
-		int carry = 1;
+		long carry = 1;
 		// Push carry all the way through whilst positive.
-		for (int i = result.length - 1; i >= 0 && carry == 1; --i) {
-			long v = ((long) lhs[i]) + carry;
-			result[i] = (int) v;
-			carry = (v & 0xffffffffffffff00L) == 0 ? 0 : 1;
+		for (int i = result.length - 1; i >= 0; --i) {
+			long a = (lhs[i]) & 0xFFFFFFFFL;
+			long b = a + carry;
+			result[i] = (int) b;
+			carry = (b & 0xF00000000L) == 0 ? 0L : 1L;
 		}
 		// Done
 		return result;
@@ -389,11 +414,14 @@ public class Word {
 	 */
 	private static int[] fixedwidth_twoscomplement_addition(int[] lhs, int[] rhs) {
 		int[] result = new int[lhs.length];
-		int carry = 0;
+		long carry = 0;
 		for (int i = result.length - 1; i >= 0; --i) {
-			long v = ((long) lhs[i]) + ((long) rhs[i]) + carry;
-			result[i] = (int) v;
-			carry = (v & 0xffffffffffffff00L) == 0 ? 0 : 1;
+			long a = (lhs[i]) & 0xFFFFFFFFL;
+			long b = (rhs[i]) & 0xFFFFFFFFL;
+			long c = a + b + carry;
+			result[i] = (int) c;
+			// Overflow detection
+			carry = (c & 0xF00000000L) == 0 ? 0L : 1L;
 		}
 		return result;
 	}
@@ -436,18 +464,51 @@ public class Word {
 	}
 
 	/**
-	 * Perform a fixed-width twos complement negation.
+	 * Perform a fixed-width twos complement negation. This is achieved by
+	 * performing a bitwise inversion an increment simultaneously. Consider negating
+	 * one:
+	 *
+	 * <pre>
+	 * |     0     |     1     |     2     |
+	 * +--+--+--+--+--+--+--+--+--+--+--+--+
+	 * |00:00:00:00|00:00:00:00|00:00:00:01|
+	 * +--+--+--+--+--+--+--+--+--+--+--+--+
+	 * </pre>
+	 *
+	 * We start by setting the carry to 1, and inverting the first byte:
+	 *
+	 * <pre>
+	 * |     0     |     1     |     2     |
+	 * +--+--+--+--+--+--+--+--+--+--+--+--+
+	 * |00:00:00:00|00:00:00:00|00:00:00:FE|
+	 * +--+--+--+--+--+--+--+--+--+--+--+--+
+	 * </pre>
+	 *
+	 * To this we add the carry which gives:
+	 *
+	 * <pre>
+	 * |     0     |     1     |     2     |
+	 * +--+--+--+--+--+--+--+--+--+--+--+--+
+	 * |00:00:00:00|00:00:00:00|00:00:00:FF|
+	 * +--+--+--+--+--+--+--+--+--+--+--+--+
+	 * </pre>
+	 *
+	 * At this point, the carry is now zero and we proceed by simply inverting all
+	 * remaining bytes.
 	 *
 	 * @param lhs
 	 * @return
 	 */
 	private static int[] fixedwidth_twoscomplement_negation(int[] lhs) {
 		int[] result = new int[lhs.length];
-		int carry = 1;
+		long carry = 1;
 		for (int i = result.length - 1; i >= 0; --i) {
-			long v = ~((long) lhs[i]) + carry;
-			result[i] = (int) v;
-			carry = (v & 0xffffffffffffff00L) == 0 ? 0 : 1;
+			// Make addition
+			long a = (~lhs[i]) & 0xFFFFFFFFL;
+			long b = a + carry;
+			result[i] = (int) b;
+			// Overflow detection
+			carry = (b & 0xF00000000L) == 0 ? 0L : 1L;
 		}
 		return result;
 	}
@@ -759,27 +820,42 @@ public class Word {
 		return ints;
 	}
 
-	public static int MIN = java.lang.Short.MIN_VALUE;
-	public static int MAX = java.lang.Short.MAX_VALUE;
+	public static long MIN = Integer.MIN_VALUE;
+	public static long MAX = Integer.MAX_VALUE;
+	public static long INC = (Integer.MAX_VALUE >> 20) - 1;
 
-	public static void testNegation() {
-		System.out.println("*** TESTING NEGATION");
-		for (int i = MIN; i < MAX; ++i) {
-			w32 w = new w32(i);
-			w32 nw = new w32(-i);
-			if(!w.negate().equals(nw)) {
+	public static void testIncrement() {
+		System.out.println("*** TESTING INCREMENT");
+		for (long i = MIN; i < MAX; i=i+INC) {
+			w256 w = new w256(i).increment();
+			w256 nw = new w256(i+1);
+			if(!w.equals(nw)) {
 				System.out.println("*** ERROR: " + w.toBigInteger() + " vs " + nw.toBigInteger());
 			}
 		}
 	}
 
+	public static void testNegation() {
+		System.out.println("*** TESTING NEGATION");
+		int count = 0;
+		for (long i = MIN; i < MAX; i = i + INC) {
+			w256 w = new w256(i).negate();
+			w256 nw = new w256(-i);
+			if(!w.equals(nw)) {
+				System.out.println("*** ERROR: " + w.toBigInteger() + " vs " + nw.toBigInteger());
+			}
+			count = count + 1;
+		}
+		System.out.println("*** TESTED NEGATION (" + count + ")");
+	}
+
 	public static void testAddition() {
 		System.out.println("*** TESTING ADDITION");
-		for (int i = MIN; i < MAX; ++i) {
-			for (int j = MIN; j < MAX; ++j) {
-				w32 l = new w32(i);
-				w32 r = new w32(j);
-				w32 t = new w32(i+j);
+		for (long i = MIN; i < MAX; i = i + INC) {
+			for (long j = MIN; j < MAX; j = j + INC) {
+				w256 l = new w256(i);
+				w256 r = new w256(j);
+				w256 t = new w256(i+j);
 				if(!l.add(r).equals(t)) {
 					System.out.println("*** ERROR: " + l.toBigInteger() + " + " + r.toBigInteger() + " = " + l.add(r));
 				}
@@ -790,11 +866,11 @@ public class Word {
 
 	public static void testMultiplication() {
 		System.out.println("*** TESTING MULTIPLICATION");
-		for (int i = MIN; i < MAX; ++i) {
-			for (int j = MIN; j < MAX; ++j) {
-				w32 l = new w32(i);
-				w32 r = new w32(j);
-				w32 t = new w32(i*j);
+		for (long i = MIN; i < MAX; i = i + INC) {
+			for (long j = MIN; j < MAX; j = j + INC) {
+				w256 l = new w256(i);
+				w256 r = new w256(j);
+				w256 t = new w256(i*j);
 				if(!l.multiply(r).equals(t)) {
 					System.out.println("*** ERROR: " + l.toBigInteger() + " * " + r.toBigInteger() + " = " + l.multiply(r).toBigInteger());
 				}
@@ -804,7 +880,7 @@ public class Word {
 
 	public static void testToInt() {
 		System.out.println("*** TESTING TOINT");
-		for (int i = MIN; i < MAX; ++i) {
+		for (long i = MIN; i < MAX; ++i) {
 			w256 w = new w256(i);
 			if (!w.isInt()) {
 				System.out.println("*** ERROR: " + i + " (not int)");
@@ -819,16 +895,22 @@ public class Word {
 //		System.out.println("GOT: " + w.toBigInteger());
 //		System.out.println("GOT: " + w.negate().toBigInteger());
 //		System.out.println("GOT: " + w.add(w).toBigInteger());
-//		testAddition();
-		testMultiplication();
+		testIncrement();
+		//testAddition();
+//		testMultiplication();
 //		testNegation();
 //		testToInt();
 //		w32 w1 = new w32(123);
 //		w32 w2 = new w32(Integer.MIN_VALUE);
 //		System.out.println("GOT: " + w1.toBigInteger() + " < " + w2.toBigInteger() + " : " + w1.unsignedLessThan(w2));
 //		System.out.println("DONE");
-		BigInteger v = new BigInteger("10000000000000000000000000000",16);
-		w256 w = new w256(v.toByteArray());
-		System.out.println(w);
+		System.out.println(Long.toHexString(-4294967296L));
+		//w256 w = new w256(-4294967296L);
+		w256 w = new w256(Integer.MIN_VALUE);
+		w256 v = w.increment();
+		System.out.println(w + " :  " + w.toBigInteger());
+		System.out.println(v + " :  " + v.toBigInteger());
+		w = w.add(v);
+		System.out.println(w + " : " + w.toBigInteger());
 	}
 }

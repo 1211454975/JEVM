@@ -1096,8 +1096,8 @@ public class Bytecode {
 
 	private static boolean executeSUB(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		stack.push(lhs.subtract(rhs));
 		state.jump(pc + 1);
 		return true;
