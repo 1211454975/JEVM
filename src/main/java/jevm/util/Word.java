@@ -904,13 +904,13 @@ public class Word {
 //		w32 w2 = new w32(Integer.MIN_VALUE);
 //		System.out.println("GOT: " + w1.toBigInteger() + " < " + w2.toBigInteger() + " : " + w1.unsignedLessThan(w2));
 //		System.out.println("DONE");
-		System.out.println(Long.toHexString(-4294967296L));
+		//System.out.println(Long.toHexString(-4294967296L));
 		//w256 w = new w256(-4294967296L);
-		w256 w = new w256(Integer.MIN_VALUE);
-		w256 v = w.increment();
+		w256 w = new w256(0);
+		w256 v = new w256(5);
 		System.out.println(w + " :  " + w.toBigInteger());
 		System.out.println(v + " :  " + v.toBigInteger());
-		w = w.add(v);
+		w = w.subtract(v);
 		System.out.println(w + " : " + w.toBigInteger());
 	}
 }
