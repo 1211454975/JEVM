@@ -1462,7 +1462,7 @@ public class Bytecode {
 	public static void main(String[] args) {
 		//byte[] bytes = Hex.fromBigEndianString("6080604052607b600055348015601457600080fd5b5060358060226000396000f3006080604052600080fd00a165627a7a72305820eb2a49ca9445598c397756374a0f997239da31baed31403e05d0fbe5666571930029");
 		//ArrayState state = new ArrayState(bytes);
-		ArrayState state = new ArrayState(new byte[] { PUSH1, 0x1, POP });
+		ArrayState state = new ArrayState(new byte[] { PUSH1, 3, PUSH1, 4, SGT });
 		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.getCodeMemory().used()) {
 			Bytecode.execute(state);
 		}
