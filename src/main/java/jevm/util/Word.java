@@ -526,10 +526,8 @@ public class Word {
 		boolean r_sign = rhs[0] < 0;
 		if (l_sign != r_sign) {
 			return l_sign;
-		} else if (l_sign) {
-			return fixedwidth_unsigned_lessthan(lhs, rhs);
 		} else {
-			return fixedwidth_unsigned_lessthan(rhs, lhs);
+			return fixedwidth_unsigned_lessthan(lhs, rhs);
 		}
 	}
 
@@ -878,6 +876,36 @@ public class Word {
 		}
 	}
 
+	public static void testUnsignedLessThan() {
+		System.out.println("*** TESTING UNSIGNED LESS THAN");
+		for (long i = 0; i < MAX; i = i + INC) {
+			for (long j = 0; j < MAX; j = j + INC) {
+				w256 l = new w256(i);
+				w256 r = new w256(j);
+				boolean b1 = i < j;
+				boolean b2 = l.unsignedLessThan(r);
+				if(b1 != b2) {
+					System.out.println("*** ERROR: " + l.toBigInteger() + " < " + r.toBigInteger() + " = " + b2);
+				}
+			}
+		}
+	}
+
+	public static void testSignedLessThan() {
+		System.out.println("*** TESTING SIGNED LESS THAN");
+		for (long i = MIN; i < MAX; i = i + INC) {
+			for (long j = MIN; j < MAX; j = j + INC) {
+				w256 l = new w256(i);
+				w256 r = new w256(j);
+				boolean b1 = i < j;
+				boolean b2 = l.signedLessThan(r);
+				if(b1 != b2) {
+					System.out.println("*** ERROR: " + l.toBigInteger() + " < " + r.toBigInteger() + " = " + b2);
+				}
+			}
+		}
+	}
+
 	public static void testToInt() {
 		System.out.println("*** TESTING TOINT");
 		for (long i = MIN; i < MAX; ++i) {
@@ -895,10 +923,12 @@ public class Word {
 //		System.out.println("GOT: " + w.toBigInteger());
 //		System.out.println("GOT: " + w.negate().toBigInteger());
 //		System.out.println("GOT: " + w.add(w).toBigInteger());
-		testIncrement();
+//		testIncrement();
 		//testAddition();
 //		testMultiplication();
 //		testNegation();
+		testUnsignedLessThan();
+		testSignedLessThan();
 //		testToInt();
 //		w32 w1 = new w32(123);
 //		w32 w2 = new w32(Integer.MIN_VALUE);
@@ -908,9 +938,7 @@ public class Word {
 		//w256 w = new w256(-4294967296L);
 		w256 w = new w256(0);
 		w256 v = new w256(5);
-		System.out.println(w + " :  " + w.toBigInteger());
-		System.out.println(v + " :  " + v.toBigInteger());
-		w = w.subtract(v);
-		System.out.println(w + " : " + w.toBigInteger());
+		System.out.println(w + " < " + v + " = " + w.signedLessThan(v));
+		System.out.println(v + " < " + w + " = " + v.signedLessThan(w));
 	}
 }
