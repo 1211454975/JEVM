@@ -1087,8 +1087,8 @@ public class Bytecode {
 
 	private static boolean executeADD(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		stack.push(lhs.add(rhs));
 		state.jump(pc + 1);
 		return true;
@@ -1105,8 +1105,8 @@ public class Bytecode {
 
 	private static boolean executeMUL(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		stack.push(lhs.multiply(rhs));
 		state.jump(pc + 1);
 		return true;
@@ -1114,50 +1114,50 @@ public class Bytecode {
 
 	private static boolean executeDIV(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeSDIV(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeMOD(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeSMOD(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeADDMOD(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeMULMOD(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
 	private static boolean executeEXP(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		throw new UnsupportedOperationException();
 	}
 
@@ -1175,8 +1175,8 @@ public class Bytecode {
 
 	private static boolean executeLT(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		boolean b = lhs.unsignedLessThan(rhs);
 		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
@@ -1185,8 +1185,8 @@ public class Bytecode {
 
 	private static boolean executeSLT(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		boolean b = lhs.signedLessThan(rhs);
 		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
@@ -1195,8 +1195,8 @@ public class Bytecode {
 
 	private static boolean executeGT(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		boolean b = rhs.unsignedLessThan(lhs);
 		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
@@ -1205,8 +1205,8 @@ public class Bytecode {
 
 	private static boolean executeSGT(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		boolean b = rhs.signedLessThan(lhs);
 		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
@@ -1215,8 +1215,8 @@ public class Bytecode {
 
 	private static boolean executeEQ(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		boolean b = lhs.equals(rhs);
 		stack.push(b ? w256.ONE : w256.ZERO);
 		state.jump(pc + 1);
@@ -1234,8 +1234,8 @@ public class Bytecode {
 
 	private static boolean executeAND(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		stack.push(lhs.and(rhs));
 		state.jump(pc + 1);
 		return true;
@@ -1243,8 +1243,8 @@ public class Bytecode {
 
 	private static boolean executeOR(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		stack.push(lhs.or(rhs));
 		state.jump(pc + 1);
 		return true;
@@ -1252,8 +1252,8 @@ public class Bytecode {
 
 	private static boolean executeXOR(int pc, VirtualMachine.State state) {
 		VirtualMachine.Stack<w256> stack = state.getStackMemory();
-		w256 rhs = stack.pop();
 		w256 lhs = stack.pop();
+		w256 rhs = stack.pop();
 		stack.push(lhs.xor(rhs));
 		state.jump(pc + 1);
 		return true;
@@ -1462,7 +1462,7 @@ public class Bytecode {
 	public static void main(String[] args) {
 		//byte[] bytes = Hex.fromBigEndianString("6080604052607b600055348015601457600080fd5b5060358060226000396000f3006080604052600080fd00a165627a7a72305820eb2a49ca9445598c397756374a0f997239da31baed31403e05d0fbe5666571930029");
 		//ArrayState state = new ArrayState(bytes);
-		ArrayState state = new ArrayState(new byte[] { PUSH1, 3, PUSH1, 4, SGT });
+		ArrayState state = new ArrayState(new byte[] { PUSH1,0x05,PUSH1,0x00,SUB, PUSH1, 4, SLT });
 		while (state.status() == VirtualMachine.State.Status.OK && state.pc() < state.getCodeMemory().used()) {
 			Bytecode.execute(state);
 		}
